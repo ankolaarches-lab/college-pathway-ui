@@ -35,14 +35,18 @@ interface TransformedCollege {
   median_earnings: number | null;
 }
 
-// For Vercel deployment, we'll bundle the data
+// For Vercel deployment, we'll use smaller dataset for faster builds
 function getDataPath(): string {
   // Check if running locally or on Vercel
   const localPath = '/Users/archesankola/.openclaw/workspace/college-dataops/data/normalized/institutions';
   const bundledPath = path.join(process.cwd(), 'data', 'institutions');
+  const smallPath = path.join(process.cwd(), 'data-small', 'institutions');
   
   if (fs.existsSync(localPath)) {
     return localPath;
+  }
+  if (fs.existsSync(smallPath)) {
+    return smallPath;
   }
   return bundledPath;
 }
@@ -83,6 +87,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
+    // Check for single ID lookup
+    const idFilter = searchParams.get('id');
+    
     // Filter params
     const typeFilter = searchParams.get('type')?.toLowerCase();
     const maxTuition = searchParams.get('max_tuition');
@@ -104,21 +111,28 @@ export async function GET(request: NextRequest) {
         
         const college = transformCollege(data);
         
-        // Apply filters
-        if (typeFilter && !college.type.toLowerCase().includes(typeFilter)) {
+        // If looking for specific ID, check first
+        if (idFilter && college.id !== parseInt(idFilter)) {
           continue;
         }
         
-        if (maxTuition && college.tuition !== null && college.tuition > parseInt(maxTuition)) {
-          continue;
-        }
-        
-        if (stateFilter && college.state !== stateFilter) {
-          continue;
-        }
-        
-        if (searchQuery && !college.name.toLowerCase().includes(searchQuery)) {
-          continue;
+        // Apply filters (skip if we're looking for a specific ID)
+        if (!idFilter) {
+          if (typeFilter && !college.type.toLowerCase().includes(typeFilter)) {
+            continue;
+          }
+          
+          if (maxTuition && college.tuition !== null && college.tuition > parseInt(maxTuition)) {
+            continue;
+          }
+          
+          if (stateFilter && college.state !== stateFilter) {
+            continue;
+          }
+          
+          if (searchQuery && !college.name.toLowerCase().includes(searchQuery)) {
+            continue;
+          }
         }
         
         colleges.push(college);
@@ -126,6 +140,14 @@ export async function GET(request: NextRequest) {
         // Skip invalid files
         console.error(`Error processing file ${file}:`, e);
       }
+    }
+    
+    // If looking for specific ID and not found, return error
+    if (idFilter && colleges.length === 0) {
+      return NextResponse.json(
+        { error: 'College not found' },
+        { status: 404 }
+      );
     }
     
     // Sort by name
