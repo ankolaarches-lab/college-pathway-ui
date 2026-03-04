@@ -1,23 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-// Mock data for colleges
-const mockColleges = [
-  { id: 1, name: "Stanford University", city: "Stanford", state: "CA", type: "Private 4-Year", tuition: 56169, inStateTuition: 56169, admissionRate: 3.7, graduationRate: 96, medianEarnings: 93600 },
-  { id: 2, name: "University of Michigan", city: "Ann Arbor", state: "MI", type: "Public 4-Year", tuition: 16736, inStateTuition: 16736, admissionRate: 17.7, graduationRate: 93, medianEarnings: 72400 },
-  { id: 3, name: "UCLA", city: "Los Angeles", state: "CA", type: "Public 4-Year", tuition: 14178, inStateTuition: 14178, admissionRate: 8.8, graduationRate: 91, medianEarnings: 68400 },
-  { id: 4, name: "MIT", city: "Cambridge", state: "MA", type: "Private 4-Year", tuition: 57590, inStateTuition: 57590, admissionRate: 3.9, graduationRate: 96, medianEarnings: 113100 },
-  { id: 5, name: "UC Berkeley", city: "Berkeley", state: "CA", type: "Public 4-Year", tuition: 14312, inStateTuition: 14312, admissionRate: 11.6, graduationRate: 90, medianEarnings: 76200 },
-  { id: 6, name: "Duke University", city: "Durham", state: "NC", type: "Private 4-Year", tuition: 60435, inStateTuition: 60435, admissionRate: 5.1, graduationRate: 96, medianEarnings: 83700 },
-  { id: 7, name: "Harvard University", city: "Cambridge", state: "MA", type: "Private 4-Year", tuition: 54269, inStateTuition: 54269, admissionRate: 3.2, graduationRate: 98, medianEarnings: 102100 },
-  { id: 8, name: "University of Texas at Austin", city: "Austin", state: "TX", type: "Public 4-Year", tuition: 11448, inStateTuition: 11448, admissionRate: 31.2, graduationRate: 85, medianEarnings: 64200 },
-  { id: 9, name: "Yale University", city: "New Haven", state: "CT", type: "Private 4-Year", tuition: 62250, inStateTuition: 62250, admissionRate: 4.4, graduationRate: 97, medianEarnings: 90500 },
-  { id: 10, name: "Georgia Tech", city: "Atlanta", state: "GA", type: "Public 4-Year", tuition: 12852, inStateTuition: 12852, admissionRate: 17.0, graduationRate: 89, medianEarnings: 78600 },
-];
+interface College {
+  id: number;
+  name: string;
+  city: string;
+  state: string;
+  type: string;
+  tuition: number | null;
+  admission_rate: number | null;
+  graduation_rate: number | null;
+  median_earnings: number | null;
+}
 
 export default function SearchPage() {
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [compareList, setCompareList] = useState<number[]>([]);
   const [filters, setFilters] = useState({
     type: "",
@@ -27,6 +28,27 @@ export default function SearchPage() {
     radius: 100,
   });
 
+  // Fetch colleges from API
+  useEffect(() => {
+    async function fetchColleges() {
+      try {
+        const response = await fetch('/api/colleges');
+        if (!response.ok) {
+          throw new Error('Failed to fetch colleges');
+        }
+        const data = await response.json();
+        setColleges(data.colleges || []);
+      } catch (err) {
+        console.error('Error fetching colleges:', err);
+        setError('Failed to load colleges. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchColleges();
+  }, []);
+
   const toggleCompare = (id: number) => {
     if (compareList.includes(id)) {
       setCompareList(compareList.filter((c) => c !== id));
@@ -35,12 +57,22 @@ export default function SearchPage() {
     }
   };
 
-  const filteredColleges = mockColleges.filter((college) => {
+  const filteredColleges = colleges.filter((college) => {
     if (filters.type && !college.type.toLowerCase().includes(filters.type.toLowerCase())) return false;
-    if (college.tuition > filters.maxCost || college.tuition < filters.minCost) return false;
-    if (college.admissionRate > filters.admissionRate) return false;
+    if (college.tuition && (college.tuition > filters.maxCost || college.tuition < filters.minCost)) return false;
+    if (college.admission_rate && college.admission_rate > filters.admissionRate) return false;
     return true;
   });
+
+  const formatTuition = (tuition: number | null) => {
+    if (tuition === null) return 'N/A';
+    return `$${tuition.toLocaleString()}`;
+  };
+
+  const formatRate = (rate: number | null) => {
+    if (rate === null) return 'N/A';
+    return `${rate.toFixed(1)}%`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -139,64 +171,88 @@ export default function SearchPage() {
           <div className="flex-1">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-slate-800">Search Results</h1>
-              <p className="text-slate-500">{filteredColleges.length} colleges found</p>
+              {loading ? (
+                <p className="text-slate-500">Loading colleges...</p>
+              ) : error ? (
+                <p className="text-red-500">{error}</p>
+              ) : (
+                <p className="text-slate-500">{filteredColleges.length} colleges found</p>
+              )}
             </div>
 
-            {/* Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredColleges.map((college) => (
-                <div key={college.id} className="card p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <Link href={`/college/${college.id}`} className="text-lg font-semibold text-slate-800 hover:text-teal-600 transition-colors">
-                        {college.name}
-                      </Link>
-                      <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={compareList.includes(college.id)}
-                      onChange={() => toggleCompare(college.id)}
-                      className="checkbox-primary w-5 h-5"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="badge badge-secondary">{college.type}</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-slate-500">Tuition</span>
-                      <p className="font-semibold text-slate-800">${college.tuition.toLocaleString()}/yr</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Graduation Rate</span>
-                      <p className="font-semibold text-teal-600">{college.graduationRate}%</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="mt-8 flex justify-center">
-              <div className="flex gap-2">
-                <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50" disabled>
-                  Previous
-                </button>
-                <button className="px-4 py-2 bg-teal-600 text-white rounded-lg">1</button>
-                <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
-                  2
-                </button>
-                <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
-                  3
-                </button>
-                <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
-                  Next
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+              </div>
+            ) : error ? (
+              <div className="card p-8 text-center">
+                <p className="text-red-500">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="btn-primary mt-4"
+                >
+                  Retry
                 </button>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Results Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredColleges.map((college) => (
+                    <div key={college.id} className="card p-5">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <Link href={`/college/${college.id}`} className="text-lg font-semibold text-slate-800 hover:text-teal-600 transition-colors">
+                            {college.name}
+                          </Link>
+                          <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={compareList.includes(college.id)}
+                          onChange={() => toggleCompare(college.id)}
+                          className="checkbox-primary w-5 h-5"
+                        />
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="badge badge-secondary">{college.type}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-slate-500">Tuition</span>
+                          <p className="font-semibold text-slate-800">{formatTuition(college.tuition)}/yr</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Graduation Rate</span>
+                          <p className="font-semibold text-teal-600">{formatRate(college.graduation_rate)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <div className="mt-8 flex justify-center">
+                  <div className="flex gap-2">
+                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50" disabled>
+                      Previous
+                    </button>
+                    <button className="px-4 py-2 bg-teal-600 text-white rounded-lg">1</button>
+                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+                      2
+                    </button>
+                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+                      3
+                    </button>
+                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
