@@ -1,0 +1,60 @@
+{
+  "institution_id": 188182,
+  "name": "University of the Southwest",
+  "city": "Hobbs",
+  "state": "NM",
+  "lat": 32.775496,
+  "lon": -103.186948,
+  "url": "https://www.usw.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 390
+  },
+  "cost": {
+    "academic_year": 30369,
+    "tuition_in_state": 16670,
+    "tuition_out_of_state": 16670,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 17598,
+      "30001_48000": 18554,
+      "48001_75000": 22163,
+      "75001_110000": 22814
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 167,
+    "completion_rate_6_year": 162
+  },
+  "earnings": {
+    "median_6_yrs": 36600,
+    "median_10_yrs": 45389
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 21303
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:40:10.658Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

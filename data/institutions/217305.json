@@ -1,0 +1,60 @@
+{
+  "institution_id": 217305,
+  "name": "New England Institute of Technology",
+  "city": "East Greenwich",
+  "state": "RI",
+  "lat": 41.661783,
+  "lon": -71.502892,
+  "url": "https://www.neit.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 2279
+  },
+  "cost": {
+    "academic_year": 48445,
+    "tuition_in_state": 35625,
+    "tuition_out_of_state": 35625,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 32517,
+      "30001_48000": 32193,
+      "48001_75000": 34465,
+      "75001_110000": 39536
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.7273,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 1297,
+    "completion_rate_6_year": 1350
+  },
+  "earnings": {
+    "median_6_yrs": 44363,
+    "median_10_yrs": 48684
+  },
+  "accreditation": {
+    "accreditor": "New England Commission on Higher Education",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 16668
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:06.175Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

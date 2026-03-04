@@ -1,0 +1,60 @@
+{
+  "institution_id": 106245,
+  "name": "University of Arkansas at Little Rock",
+  "city": "Little Rock",
+  "state": "AR",
+  "lat": 34.723254,
+  "lon": -92.339778,
+  "url": "ualr.edu/www/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 7132
+  },
+  "cost": {
+    "academic_year": 21013,
+    "tuition_in_state": 8455,
+    "tuition_out_of_state": 19210,
+    "net_price_public": {
+      "0_30000": 14143,
+      "30001_48000": 15520,
+      "48001_75000": 18216,
+      "75001_110000": 20594
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.5774,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 1985,
+    "completion_rate_6_year": 2032
+  },
+  "earnings": {
+    "median_6_yrs": 40040,
+    "median_10_yrs": 45265
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 22000
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:38:31.936Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

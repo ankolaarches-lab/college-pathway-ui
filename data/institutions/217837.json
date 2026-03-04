@@ -1,0 +1,60 @@
+{
+  "institution_id": 217837,
+  "name": "Northeastern Technical College",
+  "city": "Cheraw",
+  "state": "SC",
+  "lat": 34.698248,
+  "lon": -79.939245,
+  "url": "www.netc.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 2253
+  },
+  "cost": {
+    "academic_year": 15290,
+    "tuition_in_state": 5664,
+    "tuition_out_of_state": 6024,
+    "net_price_public": {
+      "0_30000": 8064,
+      "30001_48000": 7063,
+      "48001_75000": 6929,
+      "75001_110000": 7530
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 302,
+    "completion_rate_6_year": 383
+  },
+  "earnings": {
+    "median_6_yrs": 28856,
+    "median_10_yrs": 32141
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": null
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:06.176Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

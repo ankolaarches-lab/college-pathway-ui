@@ -1,0 +1,60 @@
+{
+  "institution_id": 110565,
+  "name": "California State University-Fullerton",
+  "city": "Fullerton",
+  "state": "CA",
+  "lat": 33.881506,
+  "lon": -117.885446,
+  "url": "www.fullerton.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 39697
+  },
+  "cost": {
+    "academic_year": 16767,
+    "tuition_in_state": 7073,
+    "tuition_out_of_state": 18953,
+    "net_price_public": {
+      "0_30000": 2675,
+      "30001_48000": 3466,
+      "48001_75000": 5438,
+      "75001_110000": 9101
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.8674,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 7703,
+    "completion_rate_6_year": 7178
+  },
+  "earnings": {
+    "median_6_yrs": 48558,
+    "median_10_yrs": 62951
+  },
+  "accreditation": {
+    "accreditor": "Western Association of Schools and Colleges Senior Colleges and University Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 13750
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:38:38.104Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

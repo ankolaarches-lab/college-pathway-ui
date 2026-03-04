@@ -1,0 +1,60 @@
+{
+  "institution_id": 458168,
+  "name": "The Salon Professional Academy-Onalaska",
+  "city": "Onalaska",
+  "state": "WI",
+  "lat": 43.87382,
+  "lon": -91.19732,
+  "url": "salonproacademy.com/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 115
+  },
+  "cost": {
+    "academic_year": null,
+    "tuition_in_state": null,
+    "tuition_out_of_state": null,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 13536,
+      "30001_48000": 15227,
+      "48001_75000": 16744,
+      "75001_110000": 19240
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 42,
+    "completion_rate_6_year": 63
+  },
+  "earnings": {
+    "median_6_yrs": 28576,
+    "median_10_yrs": 30744
+  },
+  "accreditation": {
+    "accreditor": "Accrediting Commission of Career Schools and Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 8374
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:42:14.922Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "institution_id": 199698,
+  "name": "St. Andrews University",
+  "city": "Laurinburg",
+  "state": "NC",
+  "lat": 34.74563,
+  "lon": -79.478567,
+  "url": "www.sa.edu/",
+  "institution_type": null,
+  "operating": 0,
+  "enrollment": {
+    "undergrad_total": 857
+  },
+  "cost": {
+    "academic_year": 49709,
+    "tuition_in_state": 30800,
+    "tuition_out_of_state": 30800,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 35861,
+      "30001_48000": 28615,
+      "48001_75000": 31578,
+      "75001_110000": 34947
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 391,
+    "completion_rate_6_year": 462
+  },
+  "earnings": {
+    "median_6_yrs": 37691,
+    "median_10_yrs": 45606
+  },
+  "accreditation": {
+    "accreditor": null,
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 25250
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:40:38.213Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

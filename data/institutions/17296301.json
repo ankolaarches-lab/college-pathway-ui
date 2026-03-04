@@ -1,0 +1,60 @@
+{
+  "institution_id": 17296301,
+  "name": "Anoka-Ramsey Community College-Cambridge Campus",
+  "city": "Cambridge",
+  "state": "MN",
+  "lat": null,
+  "lon": null,
+  "url": "www.anokaramsey.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": null
+  },
+  "cost": {
+    "academic_year": null,
+    "tuition_in_state": 5682,
+    "tuition_out_of_state": 5682,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 1732,
+    "completion_rate_6_year": 2212
+  },
+  "earnings": {
+    "median_6_yrs": 42217,
+    "median_10_yrs": 48342
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 13500
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:42:42.016Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

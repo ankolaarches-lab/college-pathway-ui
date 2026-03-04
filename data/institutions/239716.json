@@ -1,0 +1,60 @@
+{
+  "institution_id": 239716,
+  "name": "Saint Norbert College",
+  "city": "De Pere",
+  "state": "WI",
+  "lat": 44.44483,
+  "lon": -88.067812,
+  "url": "www.snc.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 2237
+  },
+  "cost": {
+    "academic_year": 56194,
+    "tuition_in_state": 44432,
+    "tuition_out_of_state": 44432,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 19944,
+      "30001_48000": 20300,
+      "48001_75000": 19828,
+      "75001_110000": 26035
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.9215,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 532,
+    "completion_rate_6_year": 449
+  },
+  "earnings": {
+    "median_6_yrs": 49775,
+    "median_10_yrs": 58363
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 26731
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:38.337Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

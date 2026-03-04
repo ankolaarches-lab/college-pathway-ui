@@ -1,0 +1,60 @@
+{
+  "institution_id": 449506,
+  "name": "SABER College",
+  "city": "Miami",
+  "state": "FL",
+  "lat": 25.771518,
+  "lon": -80.261299,
+  "url": "sabercollege.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 295
+  },
+  "cost": {
+    "academic_year": null,
+    "tuition_in_state": null,
+    "tuition_out_of_state": null,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 10144,
+      "30001_48000": 12151,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.9265,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 262,
+    "completion_rate_6_year": 248
+  },
+  "earnings": {
+    "median_6_yrs": 39024,
+    "median_10_yrs": 40816
+  },
+  "accreditation": {
+    "accreditor": "Council on Occupational Education",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": 0.022,
+    "repayment_rate": null,
+    "median_debt": 22000
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:42:08.220Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

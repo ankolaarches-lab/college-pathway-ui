@@ -1,0 +1,60 @@
+{
+  "institution_id": 229179,
+  "name": "Texas Woman's University",
+  "city": "Denton",
+  "state": "TX",
+  "lat": 33.226211,
+  "lon": -97.127842,
+  "url": "www.twu.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 12081
+  },
+  "cost": {
+    "academic_year": 20399,
+    "tuition_in_state": 8648,
+    "tuition_out_of_state": 18720,
+    "net_price_public": {
+      "0_30000": 8378,
+      "30001_48000": 8345,
+      "48001_75000": 11121,
+      "75001_110000": 15974
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.9499,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 2550,
+    "completion_rate_6_year": 2512
+  },
+  "earnings": {
+    "median_6_yrs": 48773,
+    "median_10_yrs": 56544
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 19218
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:27.985Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "institution_id": 207263,
+  "name": "Northeastern State University",
+  "city": "Tahlequah",
+  "state": "OK",
+  "lat": 35.919939,
+  "lon": -94.967229,
+  "url": "https://www.nsuok.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 6213
+  },
+  "cost": {
+    "academic_year": 19274,
+    "tuition_in_state": 7513,
+    "tuition_out_of_state": 16633,
+    "net_price_public": {
+      "0_30000": 9624,
+      "30001_48000": 9468,
+      "48001_75000": 12083,
+      "75001_110000": 16943
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.9921,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 1755,
+    "completion_rate_6_year": 1817
+  },
+  "earnings": {
+    "median_6_yrs": 41207,
+    "median_10_yrs": 45379
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 17367
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:40:49.424Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

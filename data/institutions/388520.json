@@ -1,0 +1,60 @@
+{
+  "institution_id": 388520,
+  "name": "College of Biblical Studies-Houston",
+  "city": "Houston",
+  "state": "TX",
+  "lat": 29.716676,
+  "lon": -95.506559,
+  "url": "https://cbshouston.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 553
+  },
+  "cost": {
+    "academic_year": 20532,
+    "tuition_in_state": 7475,
+    "tuition_out_of_state": 9275,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 13437,
+      "30001_48000": 14394,
+      "48001_75000": 17715,
+      "75001_110000": 18415
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 136,
+    "completion_rate_6_year": 180
+  },
+  "earnings": {
+    "median_6_yrs": 33366,
+    "median_10_yrs": 39260
+  },
+  "accreditation": {
+    "accreditor": "Association for Biblical Higher Education",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 25570
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:50.986Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

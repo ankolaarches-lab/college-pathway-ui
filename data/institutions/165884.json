@@ -1,0 +1,60 @@
+{
+  "institution_id": 165884,
+  "name": "Benjamin Franklin Cummings Institute of Technology",
+  "city": "Boston",
+  "state": "MA",
+  "lat": 42.346023,
+  "lon": -71.070231,
+  "url": "www.bfit.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 982
+  },
+  "cost": {
+    "academic_year": 27631,
+    "tuition_in_state": 18906,
+    "tuition_out_of_state": 18906,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 14892,
+      "30001_48000": 15626,
+      "48001_75000": 16031,
+      "75001_110000": 20982
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 263,
+    "completion_rate_6_year": 252
+  },
+  "earnings": {
+    "median_6_yrs": 50583,
+    "median_10_yrs": 57556
+  },
+  "accreditation": {
+    "accreditor": "New England Commission on Higher Education",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 12000
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:39:38.254Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

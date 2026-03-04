@@ -1,0 +1,60 @@
+{
+  "institution_id": 242121,
+  "name": "Humacao Community College",
+  "city": "Humacao",
+  "state": "PR",
+  "lat": 18.148274,
+  "lon": -65.826857,
+  "url": "www.hccpr.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 323
+  },
+  "cost": {
+    "academic_year": 9849,
+    "tuition_in_state": 6560,
+    "tuition_out_of_state": 6560,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 2533,
+      "30001_48000": 4279,
+      "48001_75000": 4904,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 221,
+    "completion_rate_6_year": 262
+  },
+  "earnings": {
+    "median_6_yrs": 19411,
+    "median_10_yrs": 20064
+  },
+  "accreditation": {
+    "accreditor": "Accrediting Commission of Career Schools and Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": null
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:42.902Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

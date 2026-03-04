@@ -1,0 +1,60 @@
+{
+  "institution_id": 484932,
+  "name": "BridgeValley Community & Technical College",
+  "city": "South  Charleston",
+  "state": "WV",
+  "lat": 38.353846,
+  "lon": -81.6983,
+  "url": "www.bridgevalley.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 1990
+  },
+  "cost": {
+    "academic_year": 10892,
+    "tuition_in_state": 5282,
+    "tuition_out_of_state": 11748,
+    "net_price_public": {
+      "0_30000": 4116,
+      "30001_48000": 4840,
+      "48001_75000": 7174,
+      "75001_110000": 8249
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 680,
+    "completion_rate_6_year": 813
+  },
+  "earnings": {
+    "median_6_yrs": 34209,
+    "median_10_yrs": 36432
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 9829
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:42:23.957Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

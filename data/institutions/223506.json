@@ -1,0 +1,60 @@
+{
+  "institution_id": 223506,
+  "name": "Brazosport College",
+  "city": "Lake Jackson",
+  "state": "TX",
+  "lat": 29.048604,
+  "lon": -95.40934,
+  "url": "www.brazosport.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 5641
+  },
+  "cost": {
+    "academic_year": 8423,
+    "tuition_in_state": 2388,
+    "tuition_out_of_state": 4711,
+    "net_price_public": {
+      "0_30000": 1772,
+      "30001_48000": 2696,
+      "48001_75000": 4761,
+      "75001_110000": 6850
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 365,
+    "completion_rate_6_year": 486
+  },
+  "earnings": {
+    "median_6_yrs": 37347,
+    "median_10_yrs": 45910
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 5641
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:16.160Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

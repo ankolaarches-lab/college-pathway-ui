@@ -1,0 +1,60 @@
+{
+  "institution_id": 220400,
+  "name": "Jackson State Community College",
+  "city": "Jackson",
+  "state": "TN",
+  "lat": 35.645571,
+  "lon": -88.780005,
+  "url": "www.jscc.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 4699
+  },
+  "cost": {
+    "academic_year": 15304,
+    "tuition_in_state": 4516,
+    "tuition_out_of_state": 17716,
+    "net_price_public": {
+      "0_30000": 7058,
+      "30001_48000": 6869,
+      "48001_75000": 8067,
+      "75001_110000": 10143
+    },
+    "net_price_private": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 1060,
+    "completion_rate_6_year": 1167
+  },
+  "earnings": {
+    "median_6_yrs": 32274,
+    "median_10_yrs": 35224
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": null
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:10.964Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

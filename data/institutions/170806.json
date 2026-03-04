@@ -1,0 +1,60 @@
+{
+  "institution_id": 170806,
+  "name": "Madonna University",
+  "city": "Livonia",
+  "state": "MI",
+  "lat": 42.384323,
+  "lon": -83.404722,
+  "url": "https://www.madonna.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 1903
+  },
+  "cost": {
+    "academic_year": 38809,
+    "tuition_in_state": 27360,
+    "tuition_out_of_state": 27360,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 10809,
+      "30001_48000": 12979,
+      "48001_75000": 18806,
+      "75001_110000": 20017
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.9293,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 523,
+    "completion_rate_6_year": 531
+  },
+  "earnings": {
+    "median_6_yrs": 49871,
+    "median_10_yrs": 59058
+  },
+  "accreditation": {
+    "accreditor": "Higher Learning Commission",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 23000
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:39:48.970Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

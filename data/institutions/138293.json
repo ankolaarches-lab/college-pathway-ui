@@ -1,0 +1,60 @@
+{
+  "institution_id": 138293,
+  "name": "Webber International University",
+  "city": "Babson Park",
+  "state": "FL",
+  "lat": 27.838778,
+  "lon": -81.532315,
+  "url": "www.webber.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 1204
+  },
+  "cost": {
+    "academic_year": 48464,
+    "tuition_in_state": 32150,
+    "tuition_out_of_state": 32150,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 29108,
+      "30001_48000": 27520,
+      "48001_75000": 30975,
+      "75001_110000": 34101
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.7756,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 391,
+    "completion_rate_6_year": 462
+  },
+  "earnings": {
+    "median_6_yrs": 37691,
+    "median_10_yrs": 45606
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 25250
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:39:00.877Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

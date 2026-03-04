@@ -1,0 +1,60 @@
+{
+  "institution_id": 198516,
+  "name": "Elon University",
+  "city": "Elon",
+  "state": "NC",
+  "lat": 36.104148,
+  "lon": -79.50344,
+  "url": "https://www.elon.edu/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 6566
+  },
+  "cost": {
+    "academic_year": 59369,
+    "tuition_in_state": 44536,
+    "tuition_out_of_state": 44536,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 27108,
+      "30001_48000": 23103,
+      "48001_75000": 32133,
+      "75001_110000": 37712
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.6731,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 647,
+    "completion_rate_6_year": 679
+  },
+  "earnings": {
+    "median_6_yrs": 58082,
+    "median_10_yrs": 74545
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 20500
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:40:32.570Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

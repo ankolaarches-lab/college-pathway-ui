@@ -1,0 +1,60 @@
+{
+  "institution_id": 217235,
+  "name": "Johnson & Wales University-Providence",
+  "city": "Providence",
+  "state": "RI",
+  "lat": 41.819956,
+  "lon": -71.41277,
+  "url": "https://www.jwu.edu/campuses/providence/",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 4469
+  },
+  "cost": {
+    "academic_year": 58330,
+    "tuition_in_state": 40408,
+    "tuition_out_of_state": 40408,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 28488,
+      "30001_48000": 29394,
+      "48001_75000": 31538,
+      "75001_110000": 33740
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.837,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 4173,
+    "completion_rate_6_year": 4279
+  },
+  "earnings": {
+    "median_6_yrs": 35802,
+    "median_10_yrs": 43418
+  },
+  "accreditation": {
+    "accreditor": "New England Commission on Higher Education",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 26000
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:06.175Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

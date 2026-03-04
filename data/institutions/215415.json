@@ -1,0 +1,60 @@
+{
+  "institution_id": 215415,
+  "name": "Pittsburgh Technical College",
+  "city": "Oakdale",
+  "state": "PA",
+  "lat": 40.424679,
+  "lon": -80.189404,
+  "url": "www.ptcollege.edu/",
+  "institution_type": null,
+  "operating": 0,
+  "enrollment": {
+    "undergrad_total": 1424
+  },
+  "cost": {
+    "academic_year": 33969,
+    "tuition_in_state": 18980,
+    "tuition_out_of_state": 18980,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 21690,
+      "30001_48000": 22588,
+      "48001_75000": 25871,
+      "75001_110000": 28656
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": null,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 1047,
+    "completion_rate_6_year": 1144
+  },
+  "earnings": {
+    "median_6_yrs": 36852,
+    "median_10_yrs": 40770
+  },
+  "accreditation": {
+    "accreditor": null,
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 17416
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:41:06.172Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}

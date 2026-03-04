@@ -1,0 +1,60 @@
+{
+  "institution_id": 134945,
+  "name": "Jacksonville University",
+  "city": "Jacksonville",
+  "state": "FL",
+  "lat": 30.353227,
+  "lon": -81.60458,
+  "url": "https://www.ju.edu/index.php",
+  "institution_type": null,
+  "operating": 1,
+  "enrollment": {
+    "undergrad_total": 3984
+  },
+  "cost": {
+    "academic_year": 61414,
+    "tuition_in_state": 46180,
+    "tuition_out_of_state": 46180,
+    "net_price_public": {
+      "0_30000": null,
+      "30001_48000": null,
+      "48001_75000": null,
+      "75001_110000": null
+    },
+    "net_price_private": {
+      "0_30000": 23467,
+      "30001_48000": 23680,
+      "48001_75000": 22141,
+      "75001_110000": 29211
+    }
+  },
+  "admissions": {
+    "admission_rate_overall": 0.5729,
+    "admission_rate_hover": null
+  },
+  "completion": {
+    "completion_rate_4_year": 816,
+    "completion_rate_6_year": 898
+  },
+  "earnings": {
+    "median_6_yrs": 61991,
+    "median_10_yrs": 68010
+  },
+  "accreditation": {
+    "accreditor": "Southern Association of Colleges and Schools Commission on Colleges",
+    "type": null
+  },
+  "loan_stats": {
+    "default_rate": null,
+    "repayment_rate": null,
+    "median_debt": 22000
+  },
+  "provenance": {
+    "source": "College Scorecard API",
+    "source_url": "https://api.data.gov/ed/collegescorecard/v1/schools",
+    "retrieved_at": "2026-03-04T06:39:00.874Z",
+    "data_year": 2024,
+    "field_level": "institution",
+    "confidence": "high"
+  }
+}
