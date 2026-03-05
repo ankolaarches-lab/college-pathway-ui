@@ -40,7 +40,7 @@ function getDataPath(): string {
   // Check if running locally or on Vercel
   const localPath = '/Users/archesankola/.openclaw/workspace/college-dataops/data/normalized/institutions';
   const bundledPath = path.join(process.cwd(), 'data', 'institutions');
-  const smallPath = path.join(process.cwd(), 'data-small', 'institutions');
+  const smallPath = path.join(process.cwd(), 'data-small');
   
   if (fs.existsSync(localPath)) {
     return localPath;
@@ -67,8 +67,18 @@ function transformCollege(data: CollegeData): TransformedCollege {
     admissionRate = admissionRate / 100;
   }
   
-  // Determine type - institution_type may be null, default based on data
-  const type = data.institution_type || 'Unknown';
+  // Determine type - infer from institution_type or completion data
+  let type = data.institution_type || 'Unknown';
+  
+  // If type is unknown, try to infer from completion rates
+  if (type === 'Unknown' || type === null) {
+    const completion4yr = data.completion?.completion_rate_4_year;
+    if (completion4yr !== null && completion4yr !== undefined && completion4yr > 0) {
+      type = '4-Year';
+    } else {
+      type = '2-Year';
+    }
+  }
   
   return {
     id: data.institution_id,

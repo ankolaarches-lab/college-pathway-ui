@@ -4,26 +4,44 @@ import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-// Mock data
-const mockColleges: Record<number, any> = {
-  1: { id: 1, name: "Stanford University", city: "Stanford", state: "CA", type: "Private 4-Year", tuition: 56169, inStateTuition: 56169, admissionRate: 3.7, graduationRate: 96, medianEarnings: 93600, costAfterAid: 22000, enrollment: 17000, studentFacultyRatio: "3:1", satRange: "1450-1570" },
-  2: { id: 2, name: "University of Michigan", city: "Ann Arbor", state: "MI", type: "Public 4-Year", tuition: 16736, inStateTuition: 16736, admissionRate: 17.7, graduationRate: 93, medianEarnings: 72400, costAfterAid: 14000, enrollment: 46000, studentFacultyRatio: "15:1", satRange: "1340-1530" },
-  3: { id: 3, name: "UCLA", city: "Los Angeles", state: "CA", type: "Public 4-Year", tuition: 14178, inStateTuition: 14178, admissionRate: 8.8, graduationRate: 91, medianEarnings: 68400, costAfterAid: 8500, enrollment: 44000, studentFacultyRatio: "18:1", satRange: "1290-1520" },
-  4: { id: 4, name: "MIT", city: "Cambridge", state: "MA", type: "Private 4-Year", tuition: 57590, inStateTuition: 57590, admissionRate: 3.9, graduationRate: 96, medianEarnings: 113100, costAfterAid: 20000, enrollment: 11000, studentFacultyRatio: "3:1", satRange: "1510-1570" },
-  5: { id: 5, name: "UC Berkeley", city: "Berkeley", state: "CA", type: "Public 4-Year", tuition: 14312, inStateTuition: 14312, admissionRate: 11.6, graduationRate: 90, medianEarnings: 76200, costAfterAid: 9000, enrollment: 43000, studentFacultyRatio: "20:1", satRange: "1300-1530" },
-  6: { id: 6, name: "Duke University", city: "Durham", state: "NC", type: "Private 4-Year", tuition: 60435, inStateTuition: 60435, admissionRate: 5.1, graduationRate: 96, medianEarnings: 83700, costAfterAid: 24000, enrollment: 16000, studentFacultyRatio: "6:1", satRange: "1450-1570" },
-};
+interface College {
+  id: number;
+  name: string;
+  city: string;
+  state: string;
+  type: string;
+  tuition: number | null;
+  admission_rate: number | null;
+  graduation_rate: number | null;
+  median_earnings: number | null;
+}
 
 function CompareContent() {
   const searchParams = useSearchParams();
-  const [colleges, setColleges] = useState<any[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const ids = searchParams.get("colleges");
-    if (ids) {
-      const collegeIds = ids.split(",").map(Number).filter(id => mockColleges[id]);
-      setColleges(collegeIds.map(id => mockColleges[id]));
+    async function fetchColleges() {
+      const ids = searchParams.get("colleges");
+      if (ids) {
+        const collegeIds = ids.split(",").map(Number);
+        try {
+          const response = await fetch(`/api/colleges`);
+          if (!response.ok) throw new Error('Failed to fetch');
+          const data = await response.json();
+          
+          // Filter to only the requested IDs
+          const filtered = data.colleges.filter((c: College) => collegeIds.includes(c.id));
+          setColleges(filtered);
+        } catch (err) {
+          console.error('Error fetching colleges:', err);
+        }
+      }
+      setLoading(false);
     }
+
+    fetchColleges();
   }, [searchParams]);
 
   const clearAll = () => {
@@ -31,10 +49,23 @@ function CompareContent() {
   };
 
   // Find best values for highlighting
-  const getBestValue = (values: number[], type: "high" | "low") => {
-    if (type === "high") return Math.max(...values);
-    return Math.min(...values);
+  const getBestValue = (values: (number | null)[], type: "high" | "low") => {
+    const validValues = values.filter((v): v is number => v !== null);
+    if (validValues.length === 0) return null;
+    if (type === "high") return Math.max(...validValues);
+    return Math.min(...validValues);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (colleges.length === 0) {
     return (
@@ -54,9 +85,24 @@ function CompareContent() {
   }
 
   const tuitionValues = colleges.map(c => c.tuition);
-  const graduationValues = colleges.map(c => c.graduationRate);
-  const earningsValues = colleges.map(c => c.medianEarnings);
-  const admissionValues = colleges.map(c => c.admissionRate);
+  const graduationValues = colleges.map(c => c.graduation_rate);
+  const earningsValues = colleges.map(c => c.median_earnings);
+  const admissionValues = colleges.map(c => c.admission_rate);
+
+  const formatTuition = (tuition: number | null) => {
+    if (tuition === null) return 'N/A';
+    return `$${tuition.toLocaleString()}`;
+  };
+
+  const formatRate = (rate: number | null) => {
+    if (rate === null) return 'N/A';
+    return `${rate.toFixed(1)}%`;
+  };
+
+  const formatEarnings = (earnings: number | null) => {
+    if (earnings === null) return 'N/A';
+    return `$${earnings.toLocaleString()}`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
@@ -100,22 +146,12 @@ function CompareContent() {
               {/* Tuition */}
               <tr>
                 <td className="p-4 bg-slate-50 font-medium text-slate-700">Tuition (per year)</td>
-                {colleges.map((college, idx) => (
+                {colleges.map((college) => (
                   <td key={college.id} className={`p-4 text-center ${college.tuition === getBestValue(tuitionValues, "low") ? "bg-teal-50" : "bg-white"}`}>
                     <span className={`text-lg font-semibold ${college.tuition === getBestValue(tuitionValues, "low") ? "text-teal-600" : "text-slate-800"}`}>
-                      ${college.tuition.toLocaleString()}
+                      {formatTuition(college.tuition)}
                     </span>
                     {college.tuition === getBestValue(tuitionValues, "low") && <span className="block text-xs text-teal-500">Best value</span>}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Cost After Aid */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Cost After Aid</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className="p-4 text-center bg-white">
-                    <span className="text-lg font-semibold text-teal-600">${college.costAfterAid.toLocaleString()}</span>
                   </td>
                 ))}
               </tr>
@@ -123,11 +159,9 @@ function CompareContent() {
               {/* Admission Rate */}
               <tr>
                 <td className="p-4 bg-slate-50 font-medium text-slate-700">Admission Rate</td>
-                {colleges.map((college, idx) => (
-                  <td key={college.id} className={`p-4 text-center ${college.admissionRate === getBestValue(admissionValues, "high") ? "bg-cyan-50" : "bg-white"}`}>
-                    <span className={`text-lg font-semibold ${college.admissionRate === getBestValue(admissionValues, "high") ? "text-cyan-600" : "text-slate-800"}`}>
-                      {college.admissionRate}%
-                    </span>
+                {colleges.map((college) => (
+                  <td key={college.id} className="p-4 text-center bg-white">
+                    <span className="text-lg font-semibold text-slate-800">{formatRate(college.admission_rate)}</span>
                   </td>
                 ))}
               </tr>
@@ -135,12 +169,12 @@ function CompareContent() {
               {/* Graduation Rate */}
               <tr>
                 <td className="p-4 bg-slate-50 font-medium text-slate-700">Graduation Rate</td>
-                {colleges.map((college, idx) => (
-                  <td key={college.id} className={`p-4 text-center ${college.graduationRate === getBestValue(graduationValues, "high") ? "bg-teal-50" : "bg-white"}`}>
-                    <span className={`text-lg font-semibold ${college.graduationRate === getBestValue(graduationValues, "high") ? "text-teal-600" : "text-slate-800"}`}>
-                      {college.graduationRate}%
+                {colleges.map((college) => (
+                  <td key={college.id} className={`p-4 text-center ${college.graduation_rate === getBestValue(graduationValues, "high") ? "bg-teal-50" : "bg-white"}`}>
+                    <span className={`text-lg font-semibold ${college.graduation_rate === getBestValue(graduationValues, "high") ? "text-teal-600" : "text-slate-800"}`}>
+                      {formatRate(college.graduation_rate)}
                     </span>
-                    {college.graduationRate === getBestValue(graduationValues, "high") && <span className="block text-xs text-teal-500">Highest</span>}
+                    {college.graduation_rate === getBestValue(graduationValues, "high") && <span className="block text-xs text-teal-500">Highest</span>}
                   </td>
                 ))}
               </tr>
@@ -148,42 +182,12 @@ function CompareContent() {
               {/* Median Earnings */}
               <tr>
                 <td className="p-4 bg-slate-50 font-medium text-slate-700">Median Earnings</td>
-                {colleges.map((college, idx) => (
-                  <td key={college.id} className={`p-4 text-center ${college.medianEarnings === getBestValue(earningsValues, "high") ? "bg-teal-50" : "bg-white"}`}>
-                    <span className={`text-lg font-semibold ${college.medianEarnings === getBestValue(earningsValues, "high") ? "text-teal-600" : "text-slate-800"}`}>
-                      ${college.medianEarnings.toLocaleString()}
+                {colleges.map((college) => (
+                  <td key={college.id} className={`p-4 text-center ${college.median_earnings === getBestValue(earningsValues, "high") ? "bg-teal-50" : "bg-white"}`}>
+                    <span className={`text-lg font-semibold ${college.median_earnings === getBestValue(earningsValues, "high") ? "text-teal-600" : "text-slate-800"}`}>
+                      {formatEarnings(college.median_earnings)}
                     </span>
-                    {college.medianEarnings === getBestValue(earningsValues, "high") && <span className="block text-xs text-teal-500">Highest</span>}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Enrollment */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Enrollment</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className="p-4 text-center bg-white">
-                    <span className="text-lg font-semibold text-slate-800">{college.enrollment.toLocaleString()}</span>
-                  </td>
-                ))}
-              </tr>
-
-              {/* Student-Faculty Ratio */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Student-Faculty Ratio</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className="p-4 text-center bg-white">
-                    <span className="text-lg font-semibold text-slate-800">{college.studentFacultyRatio}</span>
-                  </td>
-                ))}
-              </tr>
-
-              {/* SAT Range */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700 rounded-bl-lg">SAT Range</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className="p-4 text-center bg-white rounded-br-lg">
-                    <span className="text-lg font-semibold text-slate-800">{college.satRange}</span>
+                    {college.median_earnings === getBestValue(earningsValues, "high") && <span className="block text-xs text-teal-500">Highest</span>}
                   </td>
                 ))}
               </tr>

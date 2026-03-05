@@ -1,6 +1,38 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
+
+interface College {
+  id: number;
+  name: string;
+  city: string;
+  state: string;
+  type: string;
+  tuition: number | null;
+  graduation_rate: number | null;
+}
 
 export default function Home() {
+  const [featuredColleges, setFeaturedColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFeatured() {
+      try {
+        const response = await fetch('/api/colleges?type=4-year');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        setFeaturedColleges((data.colleges || []).slice(0, 6));
+      } catch (err) {
+        console.error('Error fetching colleges:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFeatured();
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -18,7 +50,7 @@ export default function Home() {
             <form className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
-                placeholder="Enter location or zip code..."
+                placeholder="Search by name or location..."
                 className="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-teal-500 outline-none text-slate-700"
               />
               <Link href="/search" className="btn-primary whitespace-nowrap">
@@ -44,12 +76,6 @@ export default function Home() {
             <Link href="/search?type=private" className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full font-medium transition-colors">
               Private
             </Link>
-            <Link href="/search?residency=instate" className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full font-medium transition-colors">
-              In-State
-            </Link>
-            <Link href="/search?residency=outstate" className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full font-medium transition-colors">
-              Out-of-State
-            </Link>
           </div>
         </div>
       </section>
@@ -62,31 +88,60 @@ export default function Home() {
             <p className="text-slate-600">Explore top-rated institutions across the country</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Mock College Cards */}
-            {[
-              { name: "Stanford University", location: "Stanford, CA", type: "Private 4-Year", tuition: "$56,169", rating: 4.9 },
-              { name: "University of Michigan", location: "Ann Arbor, MI", type: "Public 4-Year", tuition: "$16,736", rating: 4.7 },
-              { name: "UCLA", location: "Los Angeles, CA", type: "Public 4-Year", tuition: "$14,178", rating: 4.6 },
-              { name: "MIT", location: "Cambridge, MA", type: "Private 4-Year", tuition: "$57,590", rating: 4.9 },
-              { name: "UC Berkeley", location: "Berkeley, CA", type: "Public 4-Year", tuition: "$14,312", rating: 4.5 },
-              { name: "Duke University", location: "Durham, NC", type: "Private 4-Year", tuition: "$60,435", rating: 4.8 },
-            ].map((college, index) => (
-              <Link href={`/college/${index + 1}`} key={index} className="card p-6 block">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-800">{college.name}</h3>
-                    <p className="text-slate-500 text-sm">{college.location}</p>
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+            </div>
+          ) : featuredColleges.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredColleges.map((college) => (
+                <Link href={`/college/${college.id}`} key={college.id} className="card p-6 block">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800 line-clamp-1">{college.name}</h3>
+                      <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
+                    </div>
+                    <span className="badge badge-secondary">{college.type}</span>
                   </div>
-                  <span className="badge badge-primary">★ {college.rating}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-teal-600">
+                      {college.tuition ? `$${college.tuition.toLocaleString()}` : 'N/A'}/yr
+                    </span>
+                    {college.graduation_rate && (
+                      <span className="text-sm text-slate-500">
+                        {college.graduation_rate.toFixed(0)}% grad rate
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Fallback mock data if API fails */}
+              {[
+                { name: "Stanford University", location: "Stanford, CA", type: "4-Year", tuition: "$56,169" },
+                { name: "University of Michigan", location: "Ann Arbor, MI", type: "4-Year", tuition: "$16,736" },
+                { name: "UCLA", location: "Los Angeles, CA", type: "4-Year", tuition: "$14,178" },
+                { name: "MIT", location: "Cambridge, MA", type: "4-Year", tuition: "$57,590" },
+                { name: "UC Berkeley", location: "Berkeley, CA", type: "4-Year", tuition: "$14,312" },
+                { name: "Duke University", location: "Durham, NC", type: "4-Year", tuition: "$60,435" },
+              ].map((college, index) => (
+                <div key={index} className="card p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800">{college.name}</h3>
+                      <p className="text-slate-500 text-sm">{college.location}</p>
+                    </div>
+                    <span className="badge badge-secondary">{college.type}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-teal-600">{college.tuition}/yr</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="badge badge-secondary">{college.type}</span>
-                  <span className="font-semibold text-teal-600">{college.tuition}/yr</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-10">
             <Link href="/search" className="btn-secondary inline-flex items-center gap-2">
