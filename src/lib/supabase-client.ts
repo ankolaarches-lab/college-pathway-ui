@@ -178,11 +178,11 @@ export const searchTransferPathways = async (institutionId: number, type = 'all'
         )
       `)
       .eq('source_institution_id', institutionId);
-    
+
     if (error1) return { data: null, error: error1 };
     return { data: asSource, error: null };
   }
-  
+
   if (type === 'target') {
     const { data: asTarget, error: error2 } = await supabase
       .from('transfer_pathways')
@@ -193,11 +193,11 @@ export const searchTransferPathways = async (institutionId: number, type = 'all'
         )
       `)
       .eq('target_institution_id', institutionId);
-    
+
     if (error2) return { data: null, error: error2 };
     return { data: asTarget, error: null };
   }
-  
+
   return { data: [], error: null };
 };
 
@@ -207,11 +207,11 @@ export const getCommunityColleges = async (state = null) => {
     .from('institutions')
     .select('id, name, city, state, institution_type')
     .ilike('institution_type', '%2-year%');
-  
+
   if (state) {
     query = query.eq('state', state);
   }
-  
+
   const { data, error } = await query.limit(100);
   return { data, error };
 };
@@ -222,11 +222,21 @@ export const getTransferUniversities = async (state = null) => {
     .from('institutions')
     .select('id, name, city, state, institution_type')
     .ilike('institution_type', '%4-year%');
-  
+
   if (state) {
     query = query.eq('state', state);
   }
-  
+
   const { data, error } = await query.limit(100);
+  return { data, error };
+};
+
+// Get programs/majors for a specific institution
+export const getInstitutionPrograms = async (institutionId: number) => {
+  const { data, error } = await supabase
+    .from('programs')
+    .select('*')
+    .eq('institution_id', institutionId)
+    .order('median_earnings', { ascending: false, nullsFirst: false });
   return { data, error };
 };

@@ -26,6 +26,10 @@ fi
 echo "📥 Step 1: Fetching ALL institutions from College Scorecard API and syncing to Supabase..."
 node scripts/sync-all-institutions.js
 
+# Step 2: Full sync of program data
+echo "\n📥 Step 2: Fetching program and major data from College Scorecard API..."
+node scripts/sync-programs.js
+
 echo "\n✅ Refresh complete!"
 echo "\nTo set up automatic weekly refresh, add this to your crontab:"
 echo "   crontab -e"

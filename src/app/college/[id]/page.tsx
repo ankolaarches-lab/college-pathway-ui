@@ -38,6 +38,7 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
   const [isFavoriteCollege, setIsFavoriteCollege] = useState(false);
   const [favoriting, setFavoriting] = useState(false);
   const [transferPathways, setTransferPathways] = useState<any>({ pathwaysFrom: [], pathwaysTo: [] });
+  const [programs, setPrograms] = useState<any[]>([]);
 
   const { user, isAuthenticated } = useAuth();
 
@@ -70,9 +71,16 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
             setIsFavoriteCollege(!!favData);
           }
 
-          // Load transfer pathways
-          const pathways = await getTransferPathways(parseInt(collegeId));
+          // Load transfer pathways and programs in parallel
+          const [pathways, programsRes] = await Promise.all([
+            getTransferPathways(parseInt(collegeId)),
+            import('@/lib/supabase-client').then(m => m.getInstitutionPrograms(parseInt(collegeId)))
+          ]);
+
           setTransferPathways(pathways);
+          if (programsRes.data) {
+            setPrograms(programsRes.data);
+          }
         } else {
           setError('College not found');
         }
@@ -400,6 +408,48 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
                 </p>
               </div>
             </div>
+          </section>
+        )}
+
+        {/* Top Programs Section */}
+        {programs && programs.length > 0 && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Top Programs by Salary</h2>
+            <p className="text-slate-500 mb-6">Explore outcomes by specific major or field of study.</p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-slate-200">
+                    <th className="py-3 px-4 font-semibold text-slate-700">Program / Major</th>
+                    <th className="py-3 px-4 font-semibold text-slate-700 text-right">Median Salary</th>
+                    <th className="py-3 px-4 font-semibold text-slate-700 text-right">Median Debt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {programs.slice(0, 10).map((program: any) => (
+                    <tr key={`${program.institution_id}-${program.cip_code}-${program.credential_level}`} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="py-3 px-4">
+                        <p className="font-semibold text-slate-800">{program.title}</p>
+                        <p className="text-xs text-slate-500">{program.credential_title}</p>
+                      </td>
+                      <td className="py-3 px-4 text-right font-semibold text-teal-600">
+                        {formatEarnings(program.median_earnings)}
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-600">
+                        {program.median_debt ? formatTuition(program.median_debt) : 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {programs.length > 10 && (
+              <p className="text-center text-slate-500 mt-4 text-sm">
+                Showing top 10 of {programs.length} programs with available outcome data.
+              </p>
+            )}
           </section>
         )}
 
