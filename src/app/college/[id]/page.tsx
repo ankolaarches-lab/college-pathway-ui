@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { addFavorite, removeFavorite, isFavorite, getTransferPathways } from "@/lib/supabase-client";
 import StudentExperiences from "@/components/StudentExperiences";
+import LocalStatistics from "@/components/LocalStatistics";
 
 interface NetPriceByIncome {
   '0_30000': number | null;
@@ -31,6 +32,8 @@ interface College {
   retention_rate?: number | null;
   description?: string | null;
   crime_stats?: any;
+  city_crime_stats?: any; // Added from instruction
+  local_housing_stats?: any; // Added from instruction
 }
 
 export default function CollegeDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -615,6 +618,14 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
             </div>
           </section>
         )}
+
+        {/* Local City Insights (External Data) */}
+        <LocalStatistics
+          cityName={college.city}
+          cityCrimeStats={college.city_crime_stats}
+          localHousingStats={college.local_housing_stats}
+          campusCrimeStats={college.crime_stats}
+        />
 
         {/* Quick Facts */}
         <section className="card p-8">
