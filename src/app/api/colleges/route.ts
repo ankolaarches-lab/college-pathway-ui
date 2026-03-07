@@ -51,6 +51,8 @@ interface TransformedCollege {
   median_earnings: number | null;
   net_price_by_income: NetPriceByIncome | null;
   student_faculty_ratio: number | null;
+  description: string | null;
+  crime_stats: any;
 }
 
 function transformCollege(data: any): TransformedCollege {
@@ -120,6 +122,8 @@ function transformCollege(data: any): TransformedCollege {
     median_earnings: data.earnings?.median_10_yrs ?? null,
     net_price_by_income: netPriceByIncome,
     student_faculty_ratio: studentFacultyRatio,
+    description: data.description ?? null,
+    crime_stats: data.crime_stats ?? null,
   };
 }
 

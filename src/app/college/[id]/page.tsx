@@ -27,6 +27,8 @@ interface College {
   student_faculty_ratio?: number | null;
   loan_stats?: any;
   demographics?: any;
+  description?: string | null;
+  crime_stats?: any;
 }
 
 export default function CollegeDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -329,13 +331,20 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
         {/* About Section */}
         <section className="card p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-4">About</h2>
-          <p className="text-slate-600 leading-relaxed">
-            {college.name} is located in {college.city}, {college.state}.
-            This institution is classified as {college.type}.
-            {college.tuition && ` The tuition is approximately ${formatTuition(college.tuition)} per year.`}
-            {college.graduation_rate && ` The graduation rate is ${formatRate(college.graduation_rate)}.`}
-            {college.median_earnings && ` Graduates typically earn around ${formatEarnings(college.median_earnings)} 10 years after enrollment.`}
-          </p>
+          {college.description ? (
+            <div className="text-slate-600 leading-relaxed mb-4">
+              <p>{college.description}</p>
+              <p className="text-xs text-slate-400 mt-2 italic">Source: Wikipedia</p>
+            </div>
+          ) : (
+            <p className="text-slate-600 leading-relaxed">
+              {college.name} is located in {college.city}, {college.state}.
+              This institution is classified as {college.type}.
+              {college.tuition && ` The tuition is approximately ${formatTuition(college.tuition)} per year.`}
+              {college.graduation_rate && ` The graduation rate is ${formatRate(college.graduation_rate)}.`}
+              {college.median_earnings && ` Graduates typically earn around ${formatEarnings(college.median_earnings)} 10 years after enrollment.`}
+            </p>
+          )}
         </section>
 
         {/* Net Price by Income Section - #1 thing parents care about */}
@@ -483,6 +492,48 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
             </div>
           </div>
         </section>
+
+        {/* Campus Safety Section */}
+        {college.crime_stats && (
+          <section className="card p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800">Campus Safety</h2>
+              <span className="badge bg-slate-100 text-slate-600 border border-slate-200">
+                Latest 3-Year Total
+              </span>
+            </div>
+
+            <p className="text-slate-500 mb-6 text-sm">
+              Total on-campus criminal offenses reported over the last three available years, according to the U.S. Department of Education.
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-slate-50 rounded-lg p-4 text-center border border-slate-100">
+                <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-1">Total Incidents</p>
+                <p className="text-2xl font-bold text-slate-800">{college.crime_stats.total_incidents ?? 0}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4 text-center border border-slate-100">
+                <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-1">Burglary</p>
+                <p className="text-2xl font-bold text-slate-800">{college.crime_stats.burglary ?? 0}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4 text-center border border-slate-100">
+                <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-1">Motor Vehicle Theft</p>
+                <p className="text-2xl font-bold text-slate-800">{college.crime_stats.motor_vehicle_theft ?? 0}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4 text-center border border-slate-100">
+                <p className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-1">Aggravated Assault</p>
+                <p className="text-2xl font-bold text-slate-800">{college.crime_stats.aggravated_assault ?? 0}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-6 text-xs text-slate-400">
+              <span>Robbery: <strong className="text-slate-600">{college.crime_stats.robbery ?? 0}</strong></span>
+              <span>Rape: <strong className="text-slate-600">{college.crime_stats.rape ?? 0}</strong></span>
+              <span>Arson: <strong className="text-slate-600">{college.crime_stats.arson ?? 0}</strong></span>
+              <span>Murder: <strong className="text-slate-600">{college.crime_stats.murder ?? 0}</strong></span>
+            </div>
+          </section>
+        )}
 
         {/* Quick Facts */}
         <section className="card p-8">
