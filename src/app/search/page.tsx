@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { addSearchHistory } from "@/lib/supabase-client";
 
 interface College {
   id: number;
@@ -15,7 +18,11 @@ interface College {
   median_earnings: number | null;
 }
 
-export default function SearchPage() {
+function SearchPageContent({ 
+  searchParams 
+}: { 
+  searchParams: ReturnType<typeof useSearchParams>;
+}) {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,17 +34,50 @@ export default function SearchPage() {
     admissionRate: 100,
     radius: 100,
   });
+  
+  const { user, isAuthenticated } = useAuth();
+  
+  // Extract search params into stable values
+  const searchType = searchParams.get('type');
+  const searchMaxTuition = searchParams.get('max_tuition');
+  const searchState = searchParams.get('state');
+  const searchQuery = searchParams.get('q');
+
+  // Initialize filters from URL params - only run once on mount
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      type: searchType || '',
+      maxCost: searchMaxTuition ? parseInt(searchMaxTuition) : 70000,
+    }));
+  }, []); // Only run on mount
 
   // Fetch colleges from API
   useEffect(() => {
     async function fetchColleges() {
+      setLoading(true);
       try {
-        const response = await fetch('/api/colleges');
+        // Build query params
+        const params = new URLSearchParams();
+        if (filters.type) params.set('type', filters.type);
+        if (filters.maxCost < 70000) params.set('max_tuition', filters.maxCost.toString());
+        
+        const response = await fetch(`/api/colleges?${params.toString()}`);
         if (!response.ok) {
           throw new Error('Failed to fetch colleges');
         }
         const data = await response.json();
         setColleges(data.colleges || []);
+        
+        // Save search history if user is logged in
+        if (isAuthenticated && user) {
+          await addSearchHistory(
+            user.id,
+            searchQuery || '',
+            { type: filters.type, state: searchState, max_tuition: filters.maxCost },
+            data.colleges?.length || 0
+          );
+        }
       } catch (err) {
         console.error('Error fetching colleges:', err);
         setError('Failed to load colleges. Please try again.');
@@ -47,7 +87,7 @@ export default function SearchPage() {
     }
 
     fetchColleges();
-  }, []);
+  }, [filters.type, filters.maxCost]);
 
   const toggleCompare = (id: number) => {
     if (compareList.includes(id)) {
@@ -272,5 +312,45 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrapper component to provide Suspense boundary for useSearchParams
+function SearchPageWrapper() {
+  const searchParams = useSearchParams();
+  
+  return <SearchPageContent key={searchParams.toString()} searchParams={searchParams} />;
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            <aside className="lg:w-72 flex-shrink-0">
+              <div className="card p-6">
+                <div className="animate-pulse">
+                  <div className="h-6 bg-slate-200 rounded mb-4"></div>
+                  <div className="h-10 bg-slate-200 rounded mb-6"></div>
+                  <div className="h-4 bg-slate-200 rounded mb-2"></div>
+                  <div className="h-4 bg-slate-200 rounded mb-2"></div>
+                  <div className="h-4 bg-slate-200 rounded mb-6"></div>
+                  <div className="h-10 bg-slate-200 rounded"></div>
+                </div>
+              </div>
+            </aside>
+            <div className="flex-1">
+              <div className="animate-pulse">
+                <div className="h-8 bg-slate-200 rounded mb-4 w-48"></div>
+                <div className="h-4 bg-slate-200 rounded w-32"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SearchPageWrapper />
+    </Suspense>
   );
 }

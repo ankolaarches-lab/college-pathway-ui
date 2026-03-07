@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
+import { addFavorite, removeFavorite, isFavorite, getTransferPathways } from "@/lib/supabase-client";
+
+interface NetPriceByIncome {
+  '0_30000': number | null;
+  '30001_48000': number | null;
+  '48001_75000': number | null;
+  '75001_110000': number | null;
+}
 
 interface College {
   id: number;
@@ -13,12 +22,22 @@ interface College {
   admission_rate: number | null;
   graduation_rate: number | null;
   median_earnings: number | null;
+  // Additional data from enhanced API
+  net_price_by_income?: NetPriceByIncome | null;
+  student_faculty_ratio?: number | null;
+  loan_stats?: any;
+  demographics?: any;
 }
 
 export default function CollegeDetailPage({ params }: { params: { id: string } }) {
   const [college, setCollege] = useState<College | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFavoriteCollege, setIsFavoriteCollege] = useState(false);
+  const [favoriting, setFavoriting] = useState(false);
+  const [transferPathways, setTransferPathways] = useState<any>({ pathwaysFrom: [], pathwaysTo: [] });
+  
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     async function fetchCollege() {
@@ -33,6 +52,16 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
         const found = data.colleges?.find((c: College) => c.id === parseInt(params.id));
         if (found) {
           setCollege(found);
+          
+          // Check if favorited (if logged in)
+          if (user) {
+            const { data: favData } = await isFavorite(user.id, parseInt(params.id));
+            setIsFavoriteCollege(!!favData);
+          }
+          
+          // Load transfer pathways
+          const pathways = await getTransferPathways(parseInt(params.id));
+          setTransferPathways(pathways);
         } else {
           setError('College not found');
         }
@@ -45,7 +74,30 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
     }
 
     fetchCollege();
-  }, [params.id]);
+  }, [params.id, user]);
+
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      // Could trigger auth modal here
+      return;
+    }
+    
+    setFavoriting(true);
+    
+    try {
+      if (isFavoriteCollege) {
+        await removeFavorite(user.id, parseInt(params.id));
+        setIsFavoriteCollege(false);
+      } else {
+        await addFavorite(user.id, parseInt(params.id));
+        setIsFavoriteCollege(true);
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+    } finally {
+      setFavoriting(false);
+    }
+  };
 
   const formatTuition = (tuition: number | null) => {
     if (tuition === null) return 'N/A';
@@ -60,6 +112,12 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
   const formatEarnings = (earnings: number | null) => {
     if (earnings === null) return 'N/A';
     return `$${earnings.toLocaleString()}`;
+  };
+
+  const formatRatio = (ratio: any) => {
+    if (!ratio || ratio === null) return 'N/A';
+    if (typeof ratio === 'number') return `${ratio}:1`;
+    return 'N/A';
   };
 
   if (loading) {
@@ -83,6 +141,8 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
     );
   }
 
+  const is2Year = college.type?.toLowerCase().includes('2-year') || college.type?.toLowerCase().includes('community');
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
@@ -97,11 +157,15 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
               </p>
             </div>
             <div className="flex gap-3">
-              <button className="btn bg-white text-teal-600 hover:bg-slate-50">
-                <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button 
+                onClick={handleFavoriteToggle}
+                disabled={favoriting || !isAuthenticated}
+                className={`btn ${isFavoriteCollege ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white text-teal-600 hover:bg-slate-50'} disabled:opacity-50`}
+              >
+                <svg className="w-5 h-5 inline-block mr-2" fill={isFavoriteCollege ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                Save
+                {isFavoriteCollege ? 'Saved' : 'Save'}
               </button>
               <Link href={`/compare?colleges=${params.id}`} className="btn-primary inline-block">
                 Add to Compare
@@ -140,6 +204,109 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
       {/* Content Sections */}
       <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
         
+        {/* Student-Faculty Ratio (if available) */}
+        {(college.student_faculty_ratio || college.type?.toLowerCase().includes('4-year')) && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Student Experience</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-slate-500 text-sm">Student-Faculty Ratio</p>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {college.student_faculty_ratio ? formatRatio(college.student_faculty_ratio) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Loan Statistics (if available) */}
+        {college.loan_stats && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Financial Aid & Debt</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <p className="text-slate-500 text-sm">Students with Federal Loans</p>
+                <p className="text-2xl font-bold text-slate-800">
+                  {college.loan_stats?.federal_loan_rate ? `${(college.loan_stats.federal_loan_rate * 100).toFixed(0)}%` : 'N/A'}
+                </p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4">
+                <p className="text-slate-500 text-sm">Median Debt</p>
+                <p className="text-2xl font-bold text-slate-800">
+                  {college.loan_stats?.median_debt ? `$${college.loan_stats.median_debt.toLocaleString()}` : 'N/A'}
+                </p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-4">
+                <p className="text-slate-500 text-sm">Pell Grant Recipients</p>
+                <p className="text-2xl font-bold text-slate-800">
+                  {college.loan_stats?.pell_grant_rate ? `${(college.loan_stats.pell_grant_rate * 100).toFixed(0)}%` : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Transfer Pathways Section */}
+        {is2Year && transferPathways.pathwaysFrom?.length > 0 && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Transfer Pathways</h2>
+            <p className="text-slate-500 mb-6">After completing your degree here, you can transfer to:</p>
+            
+            <div className="space-y-4">
+              {transferPathways.pathwaysFrom.slice(0, 5).map((pathway: any) => (
+                <div key={pathway.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                  <div>
+                    <p className="font-semibold text-slate-800">{pathway.target?.name}</p>
+                    <p className="text-sm text-slate-500">{pathway.target?.city}, {pathway.target?.state}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`badge ${pathway.agreement_type === 'automatic' ? 'badge-primary' : 'badge-secondary'}`}>
+                      {pathway.agreement_type || 'Pathway'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {transferPathways.pathwaysFrom.length > 5 && (
+              <p className="text-center text-slate-500 mt-4">
+                +{transferPathways.pathwaysFrom.length - 5} more transfer options
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* If it's a 4-year, show transfer IN options */}
+        {!is2Year && transferPathways.pathwaysTo?.length > 0 && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Transfer In Options</h2>
+            <p className="text-slate-500 mb-6">Students can transfer from these community colleges:</p>
+            
+            <div className="space-y-4">
+              {transferPathways.pathwaysTo.slice(0, 5).map((pathway: any) => (
+                <div key={pathway.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                  <div>
+                    <p className="font-semibold text-slate-800">{pathway.source?.name}</p>
+                    <p className="text-sm text-slate-500">{pathway.source?.city}, {pathway.source?.state}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`badge ${pathway.agreement_type === 'automatic' ? 'badge-primary' : 'badge-secondary'}`}>
+                      {pathway.agreement_type || 'Pathway'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* About Section */}
         <section className="card p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-4">About</h2>
@@ -152,22 +319,78 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
           </p>
         </section>
 
-        {/* Cost After Aid Section */}
-        <section className="card p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">Cost After Aid</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-teal-50 rounded-xl p-6">
-              <p className="text-sm text-teal-600 mb-1">Estimated Cost (In-State)</p>
-              <p className="text-3xl font-bold text-teal-700">{formatTuition(college.tuition)}</p>
-              <p className="text-xs text-teal-500 mt-1">per year after scholarships & grants</p>
+        {/* Net Price by Income Section - #1 thing parents care about */}
+        {(college.net_price_by_income || college.tuition) && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Average Net Price by Income</h2>
+            <p className="text-slate-500 mb-6">What families actually pay after scholarships & grants (based on income):</p>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Income brackets */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
+                  <div>
+                    <p className="font-semibold text-slate-800">$0 - $30,000</p>
+                    <p className="text-xs text-slate-500">Lowest income</p>
+                  </div>
+                  <p className="text-xl font-bold text-emerald-600">
+                    {college.net_price_by_income?.['0_30000'] !== null 
+                      ? formatTuition(college.net_price_by_income?.['0_30000'] ?? null)
+                      : 'N/A'}
+                  </p>
+                </div>
+                
+                <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
+                  <div>
+                    <p className="font-semibold text-slate-800">$30,001 - $48,000</p>
+                    <p className="text-xs text-slate-500">Low-middle income</p>
+                  </div>
+                  <p className="text-xl font-bold text-emerald-600">
+                    {college.net_price_by_income?.['30001_48000'] !== null 
+                      ? formatTuition(college.net_price_by_income?.['30001_48000'] ?? null)
+                      : 'N/A'}
+                  </p>
+                </div>
+                
+                <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
+                  <div>
+                    <p className="font-semibold text-slate-800">$48,001 - $75,000</p>
+                    <p className="text-xs text-slate-500">Middle income</p>
+                  </div>
+                  <p className="text-xl font-bold text-emerald-600">
+                    {college.net_price_by_income?.['48001_75000'] !== null 
+                      ? formatTuition(college.net_price_by_income?.['48001_75000'] ?? null)
+                      : 'N/A'}
+                  </p>
+                </div>
+                
+                <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
+                  <div>
+                    <p className="font-semibold text-slate-800">$75,001 - $110,000</p>
+                    <p className="text-xs text-slate-500">Upper-middle income</p>
+                  </div>
+                  <p className="text-xl font-bold text-emerald-600">
+                    {college.net_price_by_income?.['75001_110000'] !== null 
+                      ? formatTuition(college.net_price_by_income?.['75001_110000'] ?? null)
+                      : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Full tuition for comparison */}
+              <div className="flex flex-col justify-center">
+                <div className="bg-slate-100 rounded-xl p-6 text-center">
+                  <p className="text-sm text-slate-500 mb-1">Full Tuition (Before Aid)</p>
+                  <p className="text-3xl font-bold text-slate-700">{formatTuition(college.tuition)}</p>
+                  <p className="text-xs text-slate-400 mt-1">per year</p>
+                </div>
+                <p className="text-sm text-slate-500 mt-4 text-center">
+                  Net price is what students pay after subtracting scholarships, grants, and other financial aid.
+                </p>
+              </div>
             </div>
-            <div className="bg-cyan-50 rounded-xl p-6">
-              <p className="text-sm text-cyan-600 mb-1">Estimated Cost (Out-of-State)</p>
-              <p className="text-3xl font-bold text-cyan-700">{formatTuition(college.tuition ? college.tuition * 2 : null)}</p>
-              <p className="text-xs text-cyan-500 mt-1">per year after scholarships & grants</p>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Outcomes Section */}
         <section className="card p-8">
