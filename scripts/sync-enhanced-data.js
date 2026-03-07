@@ -48,19 +48,19 @@ const ENHANCED_FIELDS = [
 
 async function fetchEnhancedData(institutionIds, batchSize = 100) {
   console.log(`Fetching enhanced data for ${institutionIds.length} institutions...`);
-  
+
   const results = [];
   const batches = [];
-  
+
   // Split into batches
   for (let i = 0; i < institutionIds.length; i += batchSize) {
     batches.push(institutionIds.slice(i, i + batchSize));
   }
-  
+
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     console.log(`Processing batch ${i + 1}/${batches.length} (${batch.length} institutions)`);
-    
+
     try {
       // Build the query - filter by IDs
       const idList = batch.join(',');
@@ -69,28 +69,28 @@ async function fetchEnhancedData(institutionIds, batchSize = 100) {
       url.searchParams.set('fields', ENHANCED_FIELDS.join(','));
       url.searchParams.set('school.id', idList);
       url.searchParams.set('per_page', '100');
-      
+
       const response = await fetch(url.toString());
-      
+
       if (!response.ok) {
         console.error(`Error fetching batch ${i + 1}: ${response.status}`);
         continue;
       }
-      
+
       const data = await response.json();
-      
+
       if (data.results) {
         results.push(...data.results);
       }
-      
+
       // Rate limiting - be nice to the API
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
     } catch (error) {
       console.error(`Error processing batch ${i + 1}:`, error.message);
     }
   }
-  
+
   return results;
 }
 
@@ -129,64 +129,61 @@ function transformEnhancedData(rawData) {
 
 async function updateSupabaseEnhancedData(enhancedData) {
   const { createClient } = require('@supabase/supabase-js');
-  
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
   }
-  
+
   const supabase = createClient(SUPABASE_URL, serviceKey);
-  
-  console.log(`Updating ${enhancedData.length} institutions in Supabase...`);
-  
-  let updated = 0;
-  let errors = 0;
-  
-  for (const data of enhancedData) {
-    const { error } = await supabase
-      .from('institutions')
-      .update({
-        student_faculty_ratio: data.enhanced.student_faculty_ratio,
-        loan_stats: JSON.stringify(data.enhanced.loan_stats),
-        demographics: JSON.stringify(data.enhanced.demographics),
-        // Update completion with more accurate data if available
-        completion: JSON.stringify({
-          ...data.existingCompletion,
-          rate_150nt: data.enhanced.completion?.rate_150nt,
-          rate_100nt: data.enhanced.completion?.rate_100nt,
-        }),
-      })
-      .eq('id', data.id);
-    
-    if (error) {
-      console.error(`Error updating institution ${data.id}:`, error.message);
-      errors++;
-    } else {
-      updated++;
+
+  console.log(`Updating ${enhancedData.length} institutions in Supabase using bulk upsert...`);
+
+  const institutionsToUpdate = enhancedData.map(data => ({
+    id: data.id,
+    student_faculty_ratio: data.enhanced.student_faculty_ratio,
+    loan_stats: data.enhanced.loan_stats, // Stored as JSONB in DB
+    demographics: data.enhanced.demographics, // Stored as JSONB in DB
+    completion: {
+      ...data.existingCompletion,
+      rate_150nt: data.enhanced.completion?.rate_150nt,
+      rate_100nt: data.enhanced.completion?.rate_100nt,
     }
+  }));
+
+  const { error } = await supabase
+    .from('institutions')
+    .upsert(institutionsToUpdate, {
+      onConflict: 'id',
+      ignoreDuplicates: false
+    });
+
+  if (error) {
+    console.error(`❌ Bulk update error:`, error.message);
+    return { updated: 0, errors: enhancedData.length };
+  } else {
+    console.log(`✅ Successfully updated ${enhancedData.length} institutions`);
+    return { updated: enhancedData.length, errors: 0 };
   }
-  
-  console.log(`Updated ${updated} institutions (${errors} errors)`);
-  return { updated, errors };
 }
 
 async function main() {
   console.log('=== College Pathway Explorer - Enhanced Data Sync ===\n');
-  
+
   // Check for API key
   if (!process.env.COLLEGE_SCORECARD_API_KEY) {
     console.log('⚠️  COLLEGE_SCORECARD_API_KEY not set');
     console.log('To get a free API key, visit: https://collegescorecard.ed.gov/data/api/');
     console.log('Set it with: export COLLEGE_SCORECARD_API_KEY=your_key\n');
   }
-  
+
   // Get list of institutions from local data
   console.log('Reading local data files...');
   const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('.json'));
-  
+
   const institutionIds = [];
   const localDataMap = {};
-  
+
   for (const file of files) {
     const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf-8'));
     if (data.institution_id) {
@@ -194,29 +191,29 @@ async function main() {
       localDataMap[data.institution_id] = data;
     }
   }
-  
+
   console.log(`Found ${institutionIds.length} institutions in local data`);
-  
+
   if (process.env.COLLEGE_SCORECARD_API_KEY) {
     // Fetch enhanced data from API
     const enhancedResults = await fetchEnhancedData(institutionIds);
-    
+
     console.log(`\nFetched enhanced data for ${enhancedResults.length} institutions`);
-    
+
     // Transform and combine data
     const combinedData = enhancedResults.map(raw => ({
       id: raw.id,
       enhanced: transformEnhancedData(raw),
       existingCompletion: localDataMap[raw.id]?.completion || {},
     }));
-    
+
     // Update Supabase
     await updateSupabaseEnhancedData(combinedData);
   } else {
     console.log('\n⚠️  Skipping API fetch - no API key provided');
     console.log('To add enhanced data, run with COLLEGE_SCORECARD_API_KEY set');
   }
-  
+
   console.log('\n=== Sync Complete ===');
 }
 

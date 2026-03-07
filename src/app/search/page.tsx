@@ -18,9 +18,9 @@ interface College {
   median_earnings: number | null;
 }
 
-function SearchPageContent({ 
-  searchParams 
-}: { 
+function SearchPageContent({
+  searchParams
+}: {
   searchParams: ReturnType<typeof useSearchParams>;
 }) {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -34,9 +34,9 @@ function SearchPageContent({
     admissionRate: 100,
     radius: 100,
   });
-  
+
   const { user, isAuthenticated } = useAuth();
-  
+
   // Extract search params into stable values
   const searchType = searchParams.get('type');
   const searchMaxTuition = searchParams.get('max_tuition');
@@ -61,21 +61,21 @@ function SearchPageContent({
         const params = new URLSearchParams();
         if (filters.type) params.set('type', filters.type);
         if (filters.maxCost < 70000) params.set('max_tuition', filters.maxCost.toString());
-        
+
         const response = await fetch(`/api/colleges?${params.toString()}`);
         if (!response.ok) {
           throw new Error('Failed to fetch colleges');
         }
         const data = await response.json();
-        setColleges(data.colleges || []);
-        
+        setColleges(Array.isArray(data.colleges) ? data.colleges : []);
+
         // Save search history if user is logged in
         if (isAuthenticated && user) {
           await addSearchHistory(
             user.id,
             searchQuery || '',
             { type: filters.type, state: searchState, max_tuition: filters.maxCost },
-            data.colleges?.length || 0
+            Array.isArray(data.colleges) ? data.colleges.length : 0
           );
         }
       } catch (err) {
@@ -87,7 +87,7 @@ function SearchPageContent({
     }
 
     fetchColleges();
-  }, [filters.type, filters.maxCost]);
+  }, [filters.type, filters.maxCost, filters.minCost, filters.admissionRate, searchState, searchQuery]);
 
   const toggleCompare = (id: number) => {
     if (compareList.includes(id)) {
@@ -97,7 +97,7 @@ function SearchPageContent({
     }
   };
 
-  const filteredColleges = colleges.filter((college) => {
+  const filteredColleges = (colleges || []).filter((college) => {
     if (filters.type && !college.type.toLowerCase().includes(filters.type.toLowerCase())) return false;
     if (college.tuition && (college.tuition > filters.maxCost || college.tuition < filters.minCost)) return false;
     if (college.admission_rate && college.admission_rate > filters.admissionRate) return false;
@@ -109,8 +109,8 @@ function SearchPageContent({
     return `$${tuition.toLocaleString()}`;
   };
 
-  const formatRate = (rate: number | null) => {
-    if (rate === null) return 'N/A';
+  const formatRate = (rate: number | null | undefined) => {
+    if (rate === null || rate === undefined) return 'N/A';
     return `${rate.toFixed(1)}%`;
   };
 
@@ -122,11 +122,11 @@ function SearchPageContent({
           <aside className="lg:w-72 flex-shrink-0">
             <div className="card p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-slate-800 mb-4">Filters</h2>
-              
+
               {/* Type Filter */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-slate-700 mb-2">College Type</label>
-                <select 
+                <select
                   className="input-field"
                   value={filters.type}
                   onChange={(e) => setFilters({ ...filters, type: e.target.value })}
@@ -144,10 +144,10 @@ function SearchPageContent({
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Max Tuition: ${filters.maxCost.toLocaleString()}/year
                 </label>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="70000" 
+                <input
+                  type="range"
+                  min="0"
+                  max="70000"
                   step="1000"
                   value={filters.maxCost}
                   onChange={(e) => setFilters({ ...filters, maxCost: parseInt(e.target.value) })}
@@ -164,10 +164,10 @@ function SearchPageContent({
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Max Admission Rate: {filters.admissionRate}%
                 </label>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="100" 
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
                   value={filters.admissionRate}
                   onChange={(e) => setFilters({ ...filters, admissionRate: parseInt(e.target.value) })}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
@@ -183,10 +183,10 @@ function SearchPageContent({
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   Distance: {filters.radius} miles
                 </label>
-                <input 
-                  type="range" 
-                  min="10" 
-                  max="500" 
+                <input
+                  type="range"
+                  min="10"
+                  max="500"
                   step="10"
                   value={filters.radius}
                   onChange={(e) => setFilters({ ...filters, radius: parseInt(e.target.value) })}
@@ -198,7 +198,7 @@ function SearchPageContent({
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, radius: 100 })}
                 className="w-full btn-secondary text-sm"
               >
@@ -227,7 +227,7 @@ function SearchPageContent({
             ) : error ? (
               <div className="card p-8 text-center">
                 <p className="text-red-500">{error}</p>
-                <button 
+                <button
                   onClick={() => window.location.reload()}
                   className="btn-primary mt-4"
                 >
@@ -237,40 +237,49 @@ function SearchPageContent({
             ) : (
               <>
                 {/* Results Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredColleges.map((college) => (
-                    <div key={college.id} className="card p-5">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <Link href={`/college/${college.id}`} className="text-lg font-semibold text-slate-800 hover:text-teal-600 transition-colors">
-                            {college.name}
-                          </Link>
-                          <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredColleges && filteredColleges.length > 0 ? (
+                    filteredColleges.map((college, index) => (
+                      <div
+                        key={college.id}
+                        className={`card p-6 animate-fadeInUp stagger-${(index % 5) + 1}`}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <Link href={`/college/${college.id}`} className="text-lg font-semibold text-slate-800 hover:text-teal-600 transition-colors">
+                              {college.name}
+                            </Link>
+                            <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={compareList.includes(college.id)}
+                            onChange={() => toggleCompare(college.id)}
+                            className="checkbox-primary w-5 h-5"
+                          />
                         </div>
-                        <input
-                          type="checkbox"
-                          checked={compareList.includes(college.id)}
-                          onChange={() => toggleCompare(college.id)}
-                          className="checkbox-primary w-5 h-5"
-                        />
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <span className="badge badge-secondary">{college.type}</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <span className="text-slate-500">Tuition</span>
-                          <p className="font-semibold text-slate-800">{formatTuition(college.tuition)}/yr</p>
+
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <span className="badge badge-secondary">{college.type}</span>
                         </div>
-                        <div>
-                          <span className="text-slate-500">Graduation Rate</span>
-                          <p className="font-semibold text-teal-600">{formatRate(college.graduation_rate)}</p>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-slate-500">Tuition</span>
+                            <p className="font-semibold text-slate-800">{formatTuition(college.tuition)}/yr</p>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Graduation Rate</span>
+                            <p className="font-semibold text-teal-600">{formatRate(college.graduation_rate)}</p>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full py-12 text-center text-slate-500">
+                      No colleges match your filters.
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Pagination */}
@@ -300,7 +309,7 @@ function SearchPageContent({
       {/* Floating Compare Button */}
       {compareList.length > 0 && (
         <div className="fixed bottom-6 right-6 z-50">
-          <Link 
+          <Link
             href={`/compare?colleges=${compareList.join(",")}`}
             className="btn-primary shadow-lg flex items-center gap-2"
           >
@@ -318,7 +327,7 @@ function SearchPageContent({
 // Wrapper component to provide Suspense boundary for useSearchParams
 function SearchPageWrapper() {
   const searchParams = useSearchParams();
-  
+
   return <SearchPageContent key={searchParams.toString()} searchParams={searchParams} />;
 }
 

@@ -32,7 +32,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: '24px', height: '24px' }} className="text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
               </svg>
@@ -41,16 +41,16 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-4">
-            <Link href="/search" className="text-slate-600 hover:text-teal-600 font-medium">
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/search" className="text-slate-600 hover:text-teal-600 font-medium transition-colors">
               Search
             </Link>
-            <Link href="/transfer-pathways" className="text-slate-600 hover:text-teal-600 font-medium">
+            <Link href="/transfer-pathways" className="text-slate-600 hover:text-teal-600 font-medium transition-colors">
               Transfer
             </Link>
-            
+
             {isAuthenticated && (
-              <Link href="/favorites" className="text-slate-600 hover:text-teal-600 font-medium">
+              <Link href="/favorites" className="text-slate-600 hover:text-teal-600 font-medium transition-colors">
                 Favorites
               </Link>
             )}
@@ -63,11 +63,10 @@ export default function Header() {
                 {/* Mode Toggle */}
                 <button
                   onClick={handleModeToggle}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                    profile?.user_mode === 'student'
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${profile?.user_mode === 'student'
                       ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
                       : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                  }`}
+                    }`}
                 >
                   {profile?.user_mode === 'student' ? '🎓 Student' : '👨‍👩‍👧 Parent'}
                 </button>
@@ -81,7 +80,7 @@ export default function Header() {
                       </span>
                     </div>
                   </button>
-                  
+
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                     <div className="p-3 border-b border-slate-100">
                       <p className="font-medium text-slate-800 truncate">
@@ -132,8 +131,8 @@ export default function Header() {
         </div>
       </header>
 
-      <AuthModal 
-        isOpen={showAuthModal} 
+      <AuthModal
+        isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         initialMode={authMode}
       />

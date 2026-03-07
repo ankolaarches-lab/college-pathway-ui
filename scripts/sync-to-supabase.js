@@ -15,14 +15,14 @@ const path = require('path');
 
 // Configuration
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yprxfmbwbxwdpmazgadp.supabase.co';
-const DATA_DIR = process.env.DATA_DIR || '/Users/archesankola/.openclaw/workspace/college-dataops/data/normalized/institutions';
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data', 'normalized', 'institutions');
 
 const BATCH_SIZE = 100;
 
 async function main() {
   console.log('🏫 College Data Sync Script');
   console.log('============================\n');
-  
+
   // Check for Supabase credentials
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
@@ -41,6 +41,10 @@ async function main() {
 
   // Load all institution files
   console.log('📚 Loading institution data...');
+  if (!fs.existsSync(DATA_DIR)) {
+    console.error(`❌ Error: Data directory ${DATA_DIR} does not exist`);
+    process.exit(1);
+  }
   const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('.json'));
   console.log(`   Found ${files.length} institutions\n`);
 
@@ -56,10 +60,10 @@ async function main() {
       try {
         const filePath = path.join(DATA_DIR, file);
         const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        
+
         // Transform to match our schema
         const institution = {
-          id: data.institution_id,
+          id: data.id ?? data.institution_id,
           name: data.name,
           city: data.city,
           state: data.state,
@@ -75,7 +79,7 @@ async function main() {
           accreditation: data.accreditation || {},
           loan_stats: data.loan_stats || {}
         };
-        
+
         institutions.push(institution);
       } catch (err) {
         console.error(`   Error reading ${file}: ${err.message}`);
@@ -87,9 +91,9 @@ async function main() {
     if (institutions.length > 0) {
       const { error } = await supabase
         .from('institutions')
-        .upsert(institutions, { 
+        .upsert(institutions, {
           onConflict: 'id',
-          ignoreDuplicates: false 
+          ignoreDuplicates: false
         });
 
       if (error) {
@@ -106,12 +110,12 @@ async function main() {
   console.log(`✅ Sync complete!`);
   console.log(`   Processed: ${processed} institutions`);
   console.log(`   Errors: ${errors}`);
-  
+
   // Verify count in database
   const { count, error: countError } = await supabase
     .from('institutions')
     .select('*', { count: 'exact', head: true });
-    
+
   if (!countError) {
     console.log(`   Total in database: ${count}`);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { addFavorite, removeFavorite, isFavorite, getTransferPathways } from "@/lib/supabase-client";
@@ -29,38 +29,49 @@ interface College {
   demographics?: any;
 }
 
-export default function CollegeDetailPage({ params }: { params: { id: string } }) {
+export default function CollegeDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = use(paramsPromise);
+  const collegeId = params.id;
   const [college, setCollege] = useState<College | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFavoriteCollege, setIsFavoriteCollege] = useState(false);
   const [favoriting, setFavoriting] = useState(false);
   const [transferPathways, setTransferPathways] = useState<any>({ pathwaysFrom: [], pathwaysTo: [] });
-  
+
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     async function fetchCollege() {
       try {
-        const response = await fetch(`/api/colleges?id=${params.id}`);
+        const response = await fetch(`/api/colleges?id=${collegeId}`);
         if (!response.ok) {
           throw new Error('College not found');
         }
         const data = await response.json();
-        
-        // The API returns { colleges: [], total: n }, we need to find by id
-        const found = data.colleges?.find((c: College) => c.id === parseInt(params.id));
+
+        // The API returns { colleges: [], total: n }
+        // Let's be robust and check both data.colleges and data directly
+        let found = null;
+        if (Array.isArray(data.colleges)) {
+          found = data.colleges.find((c: College) => c.id === parseInt(collegeId));
+        } else if (data.id === parseInt(collegeId)) {
+          found = data;
+        } else if (data.colleges && !Array.isArray(data.colleges) && data.colleges.id === parseInt(collegeId)) {
+          found = data.colleges;
+        }
+
         if (found) {
           setCollege(found);
-          
+
           // Check if favorited (if logged in)
           if (user) {
-            const { data: favData } = await isFavorite(user.id, parseInt(params.id));
+            const { data: favData } = await isFavorite(user.id, parseInt(collegeId));
             setIsFavoriteCollege(!!favData);
           }
-          
+
           // Load transfer pathways
-          const pathways = await getTransferPathways(parseInt(params.id));
+          const pathways = await getTransferPathways(parseInt(collegeId));
           setTransferPathways(pathways);
         } else {
           setError('College not found');
@@ -74,16 +85,16 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
     }
 
     fetchCollege();
-  }, [params.id, user]);
+  }, [collegeId, user]);
 
   const handleFavoriteToggle = async () => {
     if (!user) {
       // Could trigger auth modal here
       return;
     }
-    
+
     setFavoriting(true);
-    
+
     try {
       if (isFavoriteCollege) {
         await removeFavorite(user.id, parseInt(params.id));
@@ -104,8 +115,8 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
     return `$${tuition.toLocaleString()}`;
   };
 
-  const formatRate = (rate: number | null) => {
-    if (rate === null) return 'N/A';
+  const formatRate = (rate: number | null | undefined) => {
+    if (rate === null || rate === undefined) return 'N/A';
     return `${rate.toFixed(1)}%`;
   };
 
@@ -144,7 +155,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
   const is2Year = college.type?.toLowerCase().includes('2-year') || college.type?.toLowerCase().includes('community');
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="gradient-primary pt-16 pb-24 px-4">
         <div className="max-w-4xl mx-auto">
@@ -157,17 +168,17 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
               </p>
             </div>
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={handleFavoriteToggle}
                 disabled={favoriting || !isAuthenticated}
                 className={`btn ${isFavoriteCollege ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white text-teal-600 hover:bg-slate-50'} disabled:opacity-50`}
               >
-                <svg className="w-5 h-5 inline-block mr-2" fill={isFavoriteCollege ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 mr-2" fill={isFavoriteCollege ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 {isFavoriteCollege ? 'Saved' : 'Save'}
               </button>
-              <Link href={`/compare?colleges=${params.id}`} className="btn-primary inline-block">
+              <Link href={`/compare?colleges=${collegeId}`} className="btn-primary inline-block">
                 Add to Compare
               </Link>
             </div>
@@ -203,7 +214,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
 
       {/* Content Sections */}
       <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
-        
+
         {/* Student-Faculty Ratio (if available) */}
         {(college.student_faculty_ratio || college.type?.toLowerCase().includes('4-year')) && (
           <section className="card p-8">
@@ -258,7 +269,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
           <section className="card p-8">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Transfer Pathways</h2>
             <p className="text-slate-500 mb-6">After completing your degree here, you can transfer to:</p>
-            
+
             <div className="space-y-4">
               {transferPathways.pathwaysFrom.slice(0, 5).map((pathway: any) => (
                 <div key={pathway.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
@@ -274,7 +285,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
                 </div>
               ))}
             </div>
-            
+
             {transferPathways.pathwaysFrom.length > 5 && (
               <p className="text-center text-slate-500 mt-4">
                 +{transferPathways.pathwaysFrom.length - 5} more transfer options
@@ -288,7 +299,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
           <section className="card p-8">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Transfer In Options</h2>
             <p className="text-slate-500 mb-6">Students can transfer from these community colleges:</p>
-            
+
             <div className="space-y-4">
               {transferPathways.pathwaysTo.slice(0, 5).map((pathway: any) => (
                 <div key={pathway.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
@@ -311,7 +322,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
         <section className="card p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-4">About</h2>
           <p className="text-slate-600 leading-relaxed">
-            {college.name} is located in {college.city}, {college.state}. 
+            {college.name} is located in {college.city}, {college.state}.
             This institution is classified as {college.type}.
             {college.tuition && ` The tuition is approximately ${formatTuition(college.tuition)} per year.`}
             {college.graduation_rate && ` The graduation rate is ${formatRate(college.graduation_rate)}.`}
@@ -324,7 +335,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
           <section className="card p-8">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Average Net Price by Income</h2>
             <p className="text-slate-500 mb-6">What families actually pay after scholarships & grants (based on income):</p>
-            
+
             <div className="grid md:grid-cols-2 gap-6">
               {/* Income brackets */}
               <div className="space-y-3">
@@ -334,49 +345,49 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
                     <p className="text-xs text-slate-500">Lowest income</p>
                   </div>
                   <p className="text-xl font-bold text-emerald-600">
-                    {college.net_price_by_income?.['0_30000'] !== null 
+                    {college.net_price_by_income?.['0_30000'] !== null
                       ? formatTuition(college.net_price_by_income?.['0_30000'] ?? null)
                       : 'N/A'}
                   </p>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
                   <div>
                     <p className="font-semibold text-slate-800">$30,001 - $48,000</p>
                     <p className="text-xs text-slate-500">Low-middle income</p>
                   </div>
                   <p className="text-xl font-bold text-emerald-600">
-                    {college.net_price_by_income?.['30001_48000'] !== null 
+                    {college.net_price_by_income?.['30001_48000'] !== null
                       ? formatTuition(college.net_price_by_income?.['30001_48000'] ?? null)
                       : 'N/A'}
                   </p>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
                   <div>
                     <p className="font-semibold text-slate-800">$48,001 - $75,000</p>
                     <p className="text-xs text-slate-500">Middle income</p>
                   </div>
                   <p className="text-xl font-bold text-emerald-600">
-                    {college.net_price_by_income?.['48001_75000'] !== null 
+                    {college.net_price_by_income?.['48001_75000'] !== null
                       ? formatTuition(college.net_price_by_income?.['48001_75000'] ?? null)
                       : 'N/A'}
                   </p>
                 </div>
-                
+
                 <div className="flex justify-between items-center py-3 px-4 bg-emerald-50 rounded-lg">
                   <div>
                     <p className="font-semibold text-slate-800">$75,001 - $110,000</p>
                     <p className="text-xs text-slate-500">Upper-middle income</p>
                   </div>
                   <p className="text-xl font-bold text-emerald-600">
-                    {college.net_price_by_income?.['75001_110000'] !== null 
+                    {college.net_price_by_income?.['75001_110000'] !== null
                       ? formatTuition(college.net_price_by_income?.['75001_110000'] ?? null)
                       : 'N/A'}
                   </p>
                 </div>
               </div>
-              
+
               {/* Full tuition for comparison */}
               <div className="flex flex-col justify-center">
                 <div className="bg-slate-100 rounded-xl p-6 text-center">
@@ -451,7 +462,7 @@ export default function CollegeDetailPage({ params }: { params: { id: string } }
           <Link href="/search" className="btn-secondary flex-1 text-center">
             ← Back to Search
           </Link>
-          <Link href={`/compare?colleges=${params.id}`} className="btn-primary flex-1 text-center">
+          <Link href={`/compare?colleges=${collegeId}`} className="btn-primary flex-1 text-center">
             Compare This College
           </Link>
         </div>
