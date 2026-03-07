@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { addSearchHistory } from "@/lib/supabase-client";
+import { addSearchHistory, addFavorite, removeFavorite, getFavorites } from "@/lib/supabase-client";
 
 interface College {
   id: number;
@@ -27,6 +27,7 @@ function SearchPageContent({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [compareList, setCompareList] = useState<number[]>([]);
+  const [userFavorites, setUserFavorites] = useState<number[]>([]);
   const [filters, setFilters] = useState({
     type: "",
     minCost: 0,
@@ -44,6 +45,19 @@ function SearchPageContent({
   const searchMaxTuition = searchParams.get('max_tuition');
   const searchState = searchParams.get('state');
   const searchQuery = searchParams.get('q');
+
+  // Load user favorites
+  useEffect(() => {
+    async function loadFavorites() {
+      if (user) {
+        const { data } = await getFavorites(user.id);
+        if (data) {
+          setUserFavorites(data.map((fav: any) => fav.institution_id));
+        }
+      }
+    }
+    loadFavorites();
+  }, [user]);
 
   // Debounce filters
   useEffect(() => {
@@ -109,6 +123,22 @@ function SearchPageContent({
       setCompareList(compareList.filter((c) => c !== id));
     } else if (compareList.length < 5) {
       setCompareList([...compareList, id]);
+    }
+  };
+
+  const toggleFavorite = async (id: number) => {
+    if (!user) return;
+
+    if (userFavorites.includes(id)) {
+      const { error } = await removeFavorite(user.id, id);
+      if (!error) {
+        setUserFavorites(userFavorites.filter(favId => favId !== id));
+      }
+    } else {
+      const { error } = await addFavorite(user.id, id);
+      if (!error) {
+        setUserFavorites([...userFavorites, id]);
+      }
     }
   };
 
@@ -280,12 +310,29 @@ function SearchPageContent({
                             </Link>
                             <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
                           </div>
-                          <input
-                            type="checkbox"
-                            checked={compareList.includes(college.id)}
-                            onChange={() => toggleCompare(college.id)}
-                            className="checkbox-primary w-5 h-5"
-                          />
+                          <div className="flex items-center gap-3">
+                            {isAuthenticated && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  toggleFavorite(college.id);
+                                }}
+                                className={`transition-colors ${userFavorites.includes(college.id) ? 'text-red-500' : 'text-slate-300 hover:text-red-400'}`}
+                                title={userFavorites.includes(college.id) ? "Remove from favorites" : "Add to favorites"}
+                              >
+                                <svg className="w-6 h-6" fill={userFavorites.includes(college.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                              </button>
+                            )}
+                            <input
+                              type="checkbox"
+                              checked={compareList.includes(college.id)}
+                              onChange={() => toggleCompare(college.id)}
+                              className="checkbox-primary w-5 h-5"
+                              title="Add to compare"
+                            />
+                          </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2 mb-3">

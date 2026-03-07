@@ -50,8 +50,8 @@ export default function Header() {
             </Link>
 
             {isAuthenticated && (
-              <Link href="/favorites" className="text-slate-600 hover:text-teal-600 font-medium transition-colors">
-                Favorites
+              <Link href="/dashboard" className="text-slate-600 hover:text-teal-600 font-medium transition-colors">
+                Dashboard
               </Link>
             )}
           </nav>
@@ -64,8 +64,8 @@ export default function Header() {
                 <button
                   onClick={handleModeToggle}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${profile?.user_mode === 'student'
-                      ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                      : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                    ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                     }`}
                 >
                   {profile?.user_mode === 'student' ? '🎓 Student' : '👨‍👩‍👧 Parent'}
@@ -89,6 +89,12 @@ export default function Header() {
                       <p className="text-sm text-slate-500 truncate">{user?.email}</p>
                     </div>
                     <div className="p-1">
+                      <Link
+                        href="/dashboard"
+                        className="block px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-md font-medium"
+                      >
+                        Dashboard
+                      </Link>
                       <Link
                         href="/favorites"
                         className="block px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-md"
