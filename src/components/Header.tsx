@@ -74,10 +74,15 @@ export default function Header() {
                 {/* User menu */}
                 <div className="relative group">
                   <button className="flex items-center gap-2">
-                    <div className="w-9 h-9 bg-slate-200 rounded-full flex items-center justify-center">
+                    <div className="w-9 h-9 bg-slate-200 rounded-full flex items-center justify-center relative">
                       <span className="text-slate-600 font-medium">
                         {profile?.display_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                       </span>
+                      {profile?.points > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[8px] font-bold px-1 rounded-full border border-white">
+                          {profile.points}
+                        </span>
+                      )}
                     </div>
                   </button>
 

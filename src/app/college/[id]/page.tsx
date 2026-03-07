@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { addFavorite, removeFavorite, isFavorite, getTransferPathways } from "@/lib/supabase-client";
+import StudentExperiences from "@/components/StudentExperiences";
 
 interface NetPriceByIncome {
   '0_30000': number | null;
@@ -530,6 +531,9 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
             </div>
           </section>
         )}
+
+        {/* Student Experiences (Crowdsourced Data) */}
+        <StudentExperiences institutionId={parseInt(collegeId)} institutionName={college.name} />
 
         {/* Outcomes Section */}
         <section className="card p-8">

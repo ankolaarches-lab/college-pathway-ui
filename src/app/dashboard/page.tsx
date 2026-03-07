@@ -64,7 +64,7 @@ export default function DashboardPage() {
                     Welcome, {profile?.display_name || user?.email?.split('@')[0]}!
                 </h1>
                 <p className="text-slate-600 mt-2">
-                    You are currently browsing in <span className="font-semibold text-teal-600">{profile?.user_mode || 'student'}</span> mode.
+                    You are currently browsing in <span className="font-semibold text-teal-600">{profile?.user_mode || 'student'}</span> mode with <span className="font-bold text-indigo-600">{profile?.points || 0} points</span> ({profile?.reputation_level || 'Novice'}).
                 </p>
             </div>
 
@@ -173,6 +173,14 @@ export default function DashboardPage() {
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-slate-500">Total Searches</span>
                                 <span className="font-bold text-slate-800">{history.length}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-slate-500">Contribution Points</span>
+                                <span className="font-bold text-teal-600">{profile?.points || 0}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-slate-500">Reputation</span>
+                                <span className="font-bold text-indigo-600">{profile?.reputation_level || 'Novice'}</span>
                             </div>
                             <div className="pt-4 border-t border-slate-100">
                                 <Link href="/" className="text-sm text-slate-500 hover:text-teal-600">
