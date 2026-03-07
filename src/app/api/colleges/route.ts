@@ -54,6 +54,8 @@ interface TransformedCollege {
   student_faculty_ratio: number | null;
   description: string | null;
   crime_stats: any;
+  demographics: any;
+  retention_rate: number | null;
 }
 
 function transformCollege(data: any): TransformedCollege {
@@ -125,6 +127,8 @@ function transformCollege(data: any): TransformedCollege {
     student_faculty_ratio: studentFacultyRatio,
     description: data.description ?? null,
     crime_stats: data.crime_stats ?? null,
+    demographics: data.enrollment?.demographics ?? null,
+    retention_rate: data.enrollment?.retention_rate_ft ?? data.enrollment?.retention_rate_pt ?? null,
   };
 }
 

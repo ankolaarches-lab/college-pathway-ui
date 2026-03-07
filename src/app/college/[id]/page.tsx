@@ -27,6 +27,7 @@ interface College {
   student_faculty_ratio?: number | null;
   loan_stats?: any;
   demographics?: any;
+  retention_rate?: number | null;
   description?: string | null;
   crime_stats?: any;
 }
@@ -462,10 +463,78 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
           </section>
         )}
 
+        {/* Demographics Section */}
+        {college.demographics && (
+          <section className="card p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Student Body</h2>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Gender Breakdown */}
+              <div>
+                <h3 className="text-lg font-semibold text-slate-700 mb-4">Gender</h3>
+                <div className="flex bg-slate-100 rounded-full h-4 mb-2 overflow-hidden">
+                  <div
+                    className="bg-teal-500 h-full"
+                    style={{ width: `${(college.demographics.women || 0) * 100}%` }}
+                    title={`Women: ${formatRate(college.demographics.women)}`}
+                  ></div>
+                  <div
+                    className="bg-indigo-500 h-full"
+                    style={{ width: `${(college.demographics.men || 0) * 100}%` }}
+                    title={`Men: ${formatRate(college.demographics.men)}`}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-teal-500"></div>
+                    <span className="text-slate-600">Women ({formatRate(college.demographics.women)})</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                    <span className="text-slate-600">Men ({formatRate(college.demographics.men)})</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Race/Ethnicity Breakdown */}
+              <div>
+                <h3 className="text-lg font-semibold text-slate-700 mb-4">Race & Ethnicity</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'White', value: college.demographics.white },
+                    { label: 'Hispanic', value: college.demographics.hispanic },
+                    { label: 'Black', value: college.demographics.black },
+                    { label: 'Asian', value: college.demographics.asian },
+                    { label: 'Two or More', value: college.demographics.two_or_more },
+                    { label: 'International', value: college.demographics.non_resident_alien },
+                    { label: 'Other/Unknown', value: (college.demographics.american_indian || 0) + (college.demographics.nhpi || 0) + (college.demographics.unknown || 0) }
+                  ]
+                    .filter(d => d.value && d.value > 0.01) // Only show > 1%
+                    .sort((a, b) => b.value - a.value)
+                    .map(demo => (
+                      <div key={demo.label} className="flex items-center gap-3">
+                        <div className="w-24 text-sm text-slate-600 truncate">{demo.label}</div>
+                        <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className="bg-slate-400 h-full rounded-full"
+                            style={{ width: `${Math.max(demo.value * 100, 1)}%` }}
+                          ></div>
+                        </div>
+                        <div className="w-12 text-sm text-right font-medium text-slate-700">
+                          {formatRate(demo.value)}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Outcomes Section */}
         <section className="card p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Outcomes</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center p-4 border border-slate-200 rounded-lg">
               <svg className="w-8 h-8 text-teal-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -481,6 +550,14 @@ export default function CollegeDetailPage({ params: paramsPromise }: { params: P
               <p className="font-semibold text-slate-800">Graduation Rate</p>
               <p className="text-teal-600 text-lg font-bold">{formatRate(college.graduation_rate)}</p>
               <p className="text-xs text-slate-400">within 6 years</p>
+            </div>
+            <div className="text-center p-4 border border-slate-200 rounded-lg">
+              <svg className="w-8 h-8 text-teal-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p className="font-semibold text-slate-800">Retention Rate</p>
+              <p className="text-teal-600 text-lg font-bold">{formatRate(college.retention_rate)}</p>
+              <p className="text-xs text-slate-400">returned sophomore year</p>
             </div>
             <div className="text-center p-4 border border-slate-200 rounded-lg">
               <svg className="w-8 h-8 text-teal-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
