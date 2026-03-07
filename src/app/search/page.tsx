@@ -32,7 +32,8 @@ function SearchPageContent({
     minCost: 0,
     maxCost: 70000,
     admissionRate: 100,
-    radius: 100,
+    zipCode: "",
+    distance: 50,
   });
 
   const { user, isAuthenticated } = useAuth();
@@ -61,6 +62,10 @@ function SearchPageContent({
         const params = new URLSearchParams();
         if (filters.type) params.set('type', filters.type);
         if (filters.maxCost < 70000) params.set('max_tuition', filters.maxCost.toString());
+        if (filters.zipCode && filters.zipCode.length === 5) {
+          params.set('zip', filters.zipCode);
+          params.set('distance', filters.distance.toString());
+        }
 
         const response = await fetch(`/api/colleges?${params.toString()}`);
         if (!response.ok) {
@@ -87,7 +92,7 @@ function SearchPageContent({
     }
 
     fetchColleges();
-  }, [filters.type, filters.maxCost, filters.minCost, filters.admissionRate, searchState, searchQuery]);
+  }, [filters.type, filters.maxCost, filters.minCost, filters.admissionRate, filters.zipCode, filters.distance, searchState, searchQuery]);
 
   const toggleCompare = (id: number) => {
     if (compareList.includes(id)) {
@@ -122,6 +127,40 @@ function SearchPageContent({
           <aside className="lg:w-72 flex-shrink-0">
             <div className="card p-6 sticky top-24">
               <h2 className="text-lg font-semibold text-slate-800 mb-4">Filters</h2>
+
+              {/* Location / Radius Filter */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-700 mb-2">ZIP Code</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 90210"
+                  className="input-field mb-3"
+                  value={filters.zipCode}
+                  onChange={(e) => setFilters({ ...filters, zipCode: e.target.value })}
+                  maxLength={5}
+                />
+
+                {filters.zipCode.length === 5 && (
+                  <>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Distance: Within {filters.distance} miles
+                    </label>
+                    <input
+                      type="range"
+                      min="10"
+                      max="500"
+                      step="10"
+                      value={filters.distance}
+                      onChange={(e) => setFilters({ ...filters, distance: parseInt(e.target.value) })}
+                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                    />
+                    <div className="flex justify-between text-xs text-slate-500 mt-1">
+                      <span>10 mi</span>
+                      <span>500 mi</span>
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Type Filter */}
               <div className="mb-6">
@@ -178,28 +217,8 @@ function SearchPageContent({
                 </div>
               </div>
 
-              {/* Radius */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Distance: {filters.radius} miles
-                </label>
-                <input
-                  type="range"
-                  min="10"
-                  max="500"
-                  step="10"
-                  value={filters.radius}
-                  onChange={(e) => setFilters({ ...filters, radius: parseInt(e.target.value) })}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
-                />
-                <div className="flex justify-between text-xs text-slate-500 mt-1">
-                  <span>10 mi</span>
-                  <span>500 mi</span>
-                </div>
-              </div>
-
               <button
-                onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, radius: 100 })}
+                onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, zipCode: "", distance: 50 })}
                 className="w-full btn-secondary text-sm"
               >
                 Reset Filters

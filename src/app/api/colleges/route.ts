@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
+import zipcodes from 'zipcodes';
 
 // Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://yprxfmbwbxwdpmazgadp.supabase.co';
@@ -139,6 +140,8 @@ export async function GET(request: NextRequest) {
     const maxTuition = searchParams.get('max_tuition');
     const stateFilter = searchParams.get('state')?.toUpperCase();
     const searchQuery = searchParams.get('q')?.toLowerCase();
+    const zipCode = searchParams.get('zip');
+    const distanceMiles = parseInt(searchParams.get('distance') || '50');
 
     // Pagination params
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -152,9 +155,34 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseClient();
 
     if (supabase) {
-      let query = supabase.from('institutions').select('*', { count: 'exact' });
+      let query;
+      let countQuery;
 
-      // Apply filters
+      // Use the distance RPC if zip is provided
+      if (zipCode) {
+        const location = zipcodes.lookup(zipCode);
+        if (location) {
+          query = supabase.rpc('search_colleges_by_distance', {
+            origin_lat: location.latitude,
+            origin_lon: location.longitude,
+            max_distance_miles: distanceMiles
+          });
+          countQuery = supabase.rpc('search_colleges_by_distance', {
+            origin_lat: location.latitude,
+            origin_lon: location.longitude,
+            max_distance_miles: distanceMiles
+          }, { count: 'exact' });
+        } else {
+          // Invalid zip code, fallback to normal query but maybe warn?
+          query = supabase.from('institutions').select('*', { count: 'exact' });
+          countQuery = query;
+        }
+      } else {
+        query = supabase.from('institutions').select('*', { count: 'exact' });
+        countQuery = query;
+      }
+
+      // Apply standard filters
       if (idFilter) {
         query = query.eq('id', parseInt(idFilter));
       }
@@ -168,17 +196,24 @@ export async function GET(request: NextRequest) {
         query = query.ilike('name', `%${searchQuery}%`);
       }
 
+      // For standard search we order by name. For distance search it's already ordered by distance natively in the RPC.
+      if (!zipCode) {
+        query = query.order('name', { ascending: true });
+      }
+
       // Apply pagination
       query = query.range(offset, offset + limit - 1);
-      query = query.order('name', { ascending: true });
 
-      const { data: colleges, count, error } = await query;
+      const [{ data: colleges, error }, { count }] = await Promise.all([
+        query,
+        countQuery
+      ]);
 
       if (!error && colleges && colleges.length > 0) {
         let results = colleges.map(transformCollege);
 
         if (maxTuition) {
-          results = results.filter(c =>
+          results = results.filter((c: TransformedCollege) =>
             c.tuition === null || c.tuition <= parseInt(maxTuition)
           );
         }
