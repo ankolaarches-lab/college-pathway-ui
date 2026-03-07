@@ -35,6 +35,7 @@ function SearchPageContent({
     zipCode: "",
     distance: 50,
   });
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
 
   const { user, isAuthenticated } = useAuth();
 
@@ -43,6 +44,15 @@ function SearchPageContent({
   const searchMaxTuition = searchParams.get('max_tuition');
   const searchState = searchParams.get('state');
   const searchQuery = searchParams.get('q');
+
+  // Debounce filters
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [filters]);
 
   // Initialize filters from URL params - only run once on mount
   useEffect(() => {
@@ -60,11 +70,11 @@ function SearchPageContent({
       try {
         // Build query params
         const params = new URLSearchParams();
-        if (filters.type) params.set('type', filters.type);
-        if (filters.maxCost < 70000) params.set('max_tuition', filters.maxCost.toString());
-        if (filters.zipCode && filters.zipCode.length === 5) {
-          params.set('zip', filters.zipCode);
-          params.set('distance', filters.distance.toString());
+        if (debouncedFilters.type) params.set('type', debouncedFilters.type);
+        if (debouncedFilters.maxCost < 70000) params.set('max_tuition', debouncedFilters.maxCost.toString());
+        if (debouncedFilters.zipCode && debouncedFilters.zipCode.length === 5) {
+          params.set('zip', debouncedFilters.zipCode);
+          params.set('distance', debouncedFilters.distance.toString());
         }
 
         const response = await fetch(`/api/colleges?${params.toString()}`);
@@ -79,7 +89,7 @@ function SearchPageContent({
           await addSearchHistory(
             user.id,
             searchQuery || '',
-            { type: filters.type, state: searchState, max_tuition: filters.maxCost },
+            { type: debouncedFilters.type, state: searchState, max_tuition: debouncedFilters.maxCost },
             Array.isArray(data.colleges) ? data.colleges.length : 0
           );
         }
@@ -92,7 +102,7 @@ function SearchPageContent({
     }
 
     fetchColleges();
-  }, [filters.type, filters.maxCost, filters.minCost, filters.admissionRate, filters.zipCode, filters.distance, searchState, searchQuery]);
+  }, [debouncedFilters, searchState, searchQuery]);
 
   const toggleCompare = (id: number) => {
     if (compareList.includes(id)) {
