@@ -15,22 +15,33 @@ interface College {
 
 export default function Home() {
   const [featuredColleges, setFeaturedColleges] = useState<College[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchFeatured() {
+    async function fetchData() {
       try {
-        const response = await fetch('/api/colleges?type=4-year');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        setFeaturedColleges((data.colleges || []).slice(0, 6));
+        const [collegesRes, leaderboardRes] = await Promise.all([
+          fetch('/api/colleges?type=4-year'),
+          fetch('/api/leaderboard')
+        ]);
+
+        if (collegesRes.ok) {
+          const data = await collegesRes.json();
+          setFeaturedColleges((data.colleges || []).slice(0, 6));
+        }
+
+        if (leaderboardRes.ok) {
+          const data = await leaderboardRes.json();
+          setLeaderboard(data);
+        }
       } catch (err) {
-        console.error('Error fetching colleges:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchFeatured();
+    fetchData();
   }, []);
 
   return (
@@ -176,6 +187,89 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Community Impact & Leaderboard Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-slate-900 to-indigo-950 text-white overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-cyan-400 to-indigo-400"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl font-bold mb-6 leading-tight">
+                Our Community is <span className="text-teal-400">Powering</span> Better Decisions
+              </h2>
+              <p className="text-xl text-slate-300 mb-8 leading-relaxed">
+                Official data only tells half the story. Our community of students and parents share real-world costs and experiences to help you find the true path.
+              </p>
+
+              <div className="grid grid-cols-2 gap-8 mb-10">
+                <div className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10">
+                  <p className="text-3xl font-bold text-teal-400 mb-1">1,200+</p>
+                  <p className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Real Cost Reports</p>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10">
+                  <p className="text-3xl font-bold text-cyan-400 mb-1">450+</p>
+                  <p className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Active Contributors</p>
+                </div>
+              </div>
+
+              <Link href="/dashboard" className="btn-primary inline-flex items-center gap-2 px-8 py-4 text-lg bg-teal-500 hover:bg-teal-400 text-slate-900 no-underline">
+                Join the Community
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </Link>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl relative">
+              <div className="absolute -top-6 -right-6 bg-indigo-600 px-6 py-2 rounded-full font-bold shadow-lg transform rotate-3">
+                🏆 Top Contributors
+              </div>
+
+              <div className="space-y-6">
+                {leaderboard.length > 0 ? (
+                  leaderboard.map((user, idx) => (
+                    <div key={idx} className="flex items-center gap-4 group">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl ${idx === 0 ? 'bg-yellow-400 text-yellow-900' :
+                          idx === 1 ? 'bg-slate-300 text-slate-800' :
+                            idx === 2 ? 'bg-amber-600 text-amber-50' : 'bg-white/10 text-white'
+                        }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-end">
+                          <p className="font-bold text-lg group-hover:text-teal-400 transition-colors">{user.display_name || 'Anonymous'}</p>
+                          <span className="text-teal-400 font-bold">{user.points} pts</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full"
+                              style={{ width: `${Math.min((user.points / 1000) * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-tighter">
+                            {user.reputation_level}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10">
+                    <p className="text-slate-400 italic">Leaderboard is warming up...</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-white/10 text-center">
+                <p className="text-sm text-slate-400">
+                  Earn points by contributing real-world data to any college page!
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
