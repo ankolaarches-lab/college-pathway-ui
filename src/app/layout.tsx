@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import { constructMetadata } from "@/lib/seo";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import Header from "@/components/Header";
 
-export const metadata: Metadata = {
-  title: "College Pathway Explorer",
-  description: "Find your perfect college path",
-};
+export const metadata = constructMetadata();
 
 export default function RootLayout({
   children,
@@ -16,7 +12,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-50">
+      <body className="min-h-screen bg-slate-50 antialiased">
         <AuthProvider>
           {/* Navigation Header */}
           <Header />

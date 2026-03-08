@@ -40,6 +40,29 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const BATCH_SIZE = 50;
 const HUD_DELAY_MS = 1100; // ~54 req/min
 const FORCE_RELOAD = process.argv.includes('--force');
+const STATE_FILE = path.join(__dirname, '.sync-state.json');
+
+async function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+
+async function fetchWithRetry(url, options = {}, retries = 3, backoff = 1000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(url, options);
+            if (res.status === 403) {
+                throw new Error('403 Forbidden - Check API Key permissions or ORI restrictions');
+            }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res;
+        } catch (e) {
+            if (i === retries - 1) throw e;
+            const wait = backoff * Math.pow(2, i);
+            console.log(`   ⚠️ Retry ${i + 1}/${retries} after ${wait}ms...`);
+            await sleep(wait);
+        }
+    }
+}
 
 async function enrichData() {
     console.log(`🚀 Starting production-scale data enrichment... ${FORCE_RELOAD ? '(FORCE MODE)' : ''}`);
@@ -47,6 +70,13 @@ async function enrichData() {
     let totalProcessed = 0;
     let hasMore = true;
     let lastId = 0;
+
+    // Load state
+    if (fs.existsSync(STATE_FILE) && !FORCE_RELOAD) {
+        const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+        lastId = state.lastId || 0;
+        console.log(`↩️ Resuming from ID: ${lastId}`);
+    }
 
     while (hasMore) {
         // Query batch
@@ -77,6 +107,7 @@ async function enrichData() {
 
         console.log(`\n📦 Processing Batch: Institutions ${lastId}+ (Size: ${colleges.length})`);
 
+        const updates = [];
         for (const college of colleges) {
             lastId = college.id;
 
@@ -85,7 +116,6 @@ async function enrichData() {
             const hasCrime = college.city_crime_stats && Object.keys(college.city_crime_stats).length > 0;
 
             if (!FORCE_RELOAD && hasHousing && hasCrime) {
-                // console.log(` ⏩ Skipping ${college.name} (Already enriched)`);
                 continue;
             }
 
@@ -106,8 +136,7 @@ async function enrichData() {
                         };
                         console.log('   ✅ HUD Data Found');
                     }
-                    // Rate limit delay
-                    await new Promise(r => setTimeout(r, HUD_DELAY_MS));
+                    await sleep(HUD_DELAY_MS);
                 } catch (e) {
                     console.log('   ❌ HUD API Error:', e.message);
                 }
@@ -120,34 +149,46 @@ async function enrichData() {
                     const fbiData = await fetchFBICrimeStats(college.city, college.state);
                     if (fbiData) {
                         crimeStats = fbiData;
-                        console.log('   ✅ FBI Data Found (Agency identified)');
+                        console.log('   ✅ FBI Data Found');
                     }
                 } catch (e) {
                     console.log('   ❌ FBI API Error:', e.message);
+                    if (e.message.includes('403')) {
+                        crimeStats = { status: 'restricted', error: '403 Forbidden' };
+                    }
                 }
             }
 
-            // Update DB if we found anything new
+            // Stage updates
             if (Object.keys(housingStats).length > 0 || Object.keys(crimeStats).length > 0) {
-                const { error: updateError } = await supabase
-                    .from('institutions')
-                    .update({
-                        local_housing_stats: housingStats,
-                        city_crime_stats: crimeStats
-                    })
-                    .eq('id', college.id);
-
-                if (updateError) {
-                    console.error('   ❌ Update Error:', updateError);
-                } else {
-                    console.log('   🎉 DB Updated');
-                }
+                updates.push({
+                    id: college.id,
+                    local_housing_stats: housingStats,
+                    city_crime_stats: crimeStats,
+                    updated_at: new Date().toISOString()
+                });
             }
 
             totalProcessed++;
         }
 
-        console.log(`\n✅ Batch Complete. Total Processed so far: ${totalProcessed}`);
+        // Perform batch update
+        if (updates.length > 0) {
+            console.log(`\n💾 Applying ${updates.length} updates to Supabase...`);
+            const { error: updateError } = await supabase
+                .from('institutions')
+                .upsert(updates, { onConflict: 'id' });
+
+            if (updateError) {
+                console.error('   ❌ Batch Update Error:', updateError);
+            } else {
+                console.log('   🎉 Batch Successful');
+            }
+        }
+
+        // Save progress state
+        fs.writeFileSync(STATE_FILE, JSON.stringify({ lastId, totalProcessed, timestamp: new Date().toISOString() }, null, 2));
+        console.log(`\n✅ State Saved (ID: ${lastId}). Total Processed: ${totalProcessed}`);
     }
 
     console.log('\n🏁 ENRICHMENT PROCESS COMPLETE');
@@ -163,16 +204,14 @@ async function fetchHUDHousingStats(zip, state, city) {
         if (!stateFmrCache[state]) {
             console.log(`     📥 Fetching HUD list for ${state}...`);
             const listUrl = `https://www.huduser.gov/hudapi/public/fmr/statedata/${state}`;
-            const listRes = await fetch(listUrl, {
+            const listRes = await fetchWithRetry(listUrl, {
                 headers: { 'Authorization': `Bearer ${HUD_API_KEY.trim()}` }
             });
-            if (listRes.ok) {
-                const listData = await listRes.json();
-                stateFmrCache[state] = [
-                    ...(listData.data?.metroareas || []),
-                    ...(listData.data?.counties || [])
-                ];
-            }
+            const listData = await listRes.json();
+            stateFmrCache[state] = [
+                ...(listData.data?.metroareas || []),
+                ...(listData.data?.counties || [])
+            ];
         }
 
         const zipInfo = zipcodes.lookup(zip);
@@ -194,14 +233,12 @@ async function fetchHUDHousingStats(zip, state, city) {
 
         const entityId = match.fips_code || match.code;
         const fmrUrl = `https://www.huduser.gov/hudapi/public/fmr/data/${entityId}?year=${year}`;
-        const fmrRes = await fetch(fmrUrl, {
+        const fmrRes = await fetchWithRetry(fmrUrl, {
             headers: { 'Authorization': `Bearer ${HUD_API_KEY.trim()}` }
         });
 
-        if (fmrRes.ok) {
-            const data = await fmrRes.json();
-            return data.data?.basicdata || null;
-        }
+        const data = await fmrRes.json();
+        return data.data?.basicdata || null;
     } catch (error) {
         console.error(`     ❌ HUD Fetch Error:`, error.message);
     }
@@ -218,12 +255,12 @@ async function fetchFBICrimeStats(city, state) {
     for (const baseUrl of patterns) {
         const url = `${baseUrl}?api_key=${FBI_API_KEY}`;
         try {
-            const res = await fetch(url);
-            if (res.ok) {
-                agencyData = await res.json();
-                break;
-            }
-        } catch (e) { }
+            const res = await fetchWithRetry(url, {}, 2, 500);
+            agencyData = await res.json();
+            break;
+        } catch (e) {
+            if (e.message.includes('403')) throw e;
+        }
     }
 
     let flatAgencies = [];
@@ -253,34 +290,37 @@ async function fetchFBICrimeStats(city, state) {
             `https://api.usa.gov/crime/fbi/sapi/api/summaries/agency/ori/${agency.ori}/${category}`
         ];
 
+        let foundCategory = false;
         for (const baseUrl of summaryPatterns) {
             const url = `${baseUrl}?api_key=${FBI_API_KEY}`;
             try {
-                const res = await fetch(url);
-                if (res.ok) {
-                    const summary = await res.json();
-                    if (summary.data && summary.data.length > 0) {
-                        const stats = summary.data.sort((a, b) => b.data_year - a.data_year).find(d => d.data_year >= 2020);
-                        if (stats) {
-                            const pop = stats.population || 100000;
-                            const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
-                            crimeData[key] = (stats.actual / pop) * 100000;
-                            crimeData[key + '_year'] = stats.data_year;
-                            break;
-                        }
-                    } else if (summary.keys && summary.keys.length > 0) {
-                        const latest = summary.keys[summary.keys.length - 1];
-                        const data = summary.data.find(d => d.year === latest);
-                        if (data) {
-                            const pop = data.population || 100000;
-                            const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
-                            crimeData[key] = (data.actual / pop) * 100000;
-                            crimeData[key + '_year'] = latest;
-                            break;
-                        }
+                const res = await fetchWithRetry(url, {}, 2, 500);
+                const summary = await res.json();
+                if (summary.data && summary.data.length > 0) {
+                    const stats = summary.data.sort((a, b) => b.data_year - a.data_year).find(d => d.data_year >= 2020);
+                    if (stats) {
+                        const pop = stats.population || 100000;
+                        const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
+                        crimeData[key] = (stats.actual / pop) * 100000;
+                        crimeData[key + '_year'] = stats.data_year;
+                        foundCategory = true;
+                        break;
+                    }
+                } else if (summary.keys && summary.keys.length > 0) {
+                    const latest = summary.keys[summary.keys.length - 1];
+                    const data = summary.data.find(d => d.year === latest);
+                    if (data) {
+                        const pop = data.population || 100000;
+                        const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
+                        crimeData[key] = (data.actual / pop) * 100000;
+                        crimeData[key + '_year'] = latest;
+                        foundCategory = true;
+                        break;
                     }
                 }
-            } catch (e) { }
+            } catch (e) {
+                // Silently try next pattern
+            }
         }
     }
 

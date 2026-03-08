@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://college-pathway-explorer.vercel.app/sitemap.xml

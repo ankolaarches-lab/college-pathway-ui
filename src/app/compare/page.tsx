@@ -1,8 +1,25 @@
-"use client";
+import { constructMetadata } from "@/lib/seo";
 
-import Link from "next/link";
+export const metadata = constructMetadata({
+  title: "Compare Colleges",
+  description: "Compare tuition, graduation rates, and median earnings side-by-side. Make informed decisions about your future with our college comparison tool."
+});
+
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import {
+  Building2,
+  GraduationCap,
+  DollarSign,
+  Award,
+  ArrowLeft,
+  Trash2,
+  CheckCircle2,
+  MapPin,
+  TrendingUp,
+  BarChart3
+} from 'lucide-react';
 
 interface College {
   id: number;
@@ -30,7 +47,7 @@ function CompareContent() {
           const response = await fetch(`/api/colleges`);
           if (!response.ok) throw new Error('Failed to fetch');
           const data = await response.json();
-          
+
           // Filter to only the requested IDs
           const filtered = data.colleges.filter((c: College) => collegeIds.includes(c.id));
           setColleges(filtered);
@@ -105,100 +122,139 @@ function CompareContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-slate-50/50 py-16 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Compare Colleges</h1>
-            <p className="text-slate-500">{colleges.length} colleges selected</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
+              <h1 className="text-4xl font-black text-slate-800 tracking-tight">Compare Colleges</h1>
+            </div>
+            <p className="text-slate-400 font-bold text-sm ml-5 uppercase tracking-widest">
+              Comparing <span className="text-indigo-600">{colleges.length}</span> institutions side-by-side
+            </p>
           </div>
-          <button onClick={clearAll} className="btn-secondary flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Clear All
-          </button>
+          <div className="flex items-center gap-4">
+            <Link href="/search" className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-white transition-all">
+              <ArrowLeft size={16} />
+              Add More
+            </Link>
+            <button onClick={clearAll} className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all">
+              <Trash2 size={16} />
+              Clear All
+            </button>
+          </div>
         </div>
 
-        {/* Comparison Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="text-left p-4 bg-slate-100 rounded-tl-lg min-w-48">
-                  <span className="text-slate-500 font-medium">Attribute</span>
-                </th>
-                {colleges.map((college) => (
-                  <th key={college.id} className="p-4 bg-white min-w-56">
-                    <div className="text-center">
-                      <Link href={`/college/${college.id}`} className="text-lg font-semibold text-slate-800 hover:text-teal-600 transition-colors">
-                        {college.name}
-                      </Link>
-                      <p className="text-sm text-slate-500">{college.city}, {college.state}</p>
-                      <span className="badge badge-secondary mt-2">{college.type}</span>
+        {/* Comparison Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-8">
+          {/* Attributes Labels Column (Desktop Only) */}
+          <div className="hidden lg:flex flex-col pt-[260px] gap-20">
+            {[
+              { label: 'Tuition', sub: 'Per Academic Year', icon: DollarSign },
+              { label: 'Admission Rate', sub: 'Selectivity level', icon: BarChart3 },
+              { label: 'Graduation Rate', sub: 'Within 6 years', icon: GraduationCap },
+              { label: 'Median Earnings', sub: '10-yr Post Entry', icon: TrendingUp }
+            ].map((attr) => (
+              <div key={attr.label} className="flex items-center gap-3 group">
+                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:shadow-indigo-50 transition-all">
+                  <attr.icon size={20} />
+                </div>
+                <div>
+                  <p className="font-black text-slate-800 text-[10px] uppercase tracking-widest">{attr.label}</p>
+                  <p className="text-[10px] text-slate-400 font-bold italic">{attr.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* College Cards Container */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {colleges.map((college) => (
+              <div key={college.id} className="glass-card flex flex-col overflow-hidden animate-fadeInUp">
+                {/* College Header */}
+                <div className="p-8 border-b border-indigo-50/50 bg-white/40">
+                  <Link href={`/college/${college.id}`} className="text-xl font-black text-slate-800 hover:text-indigo-600 transition-colors block mb-2 tracking-tight line-clamp-2 min-h-[56px]">
+                    {college.name}
+                  </Link>
+                  <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-4">
+                    <MapPin size={12} className="text-indigo-400" />
+                    {college.city}, {college.state}
+                  </div>
+                  <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
+                    {college.type}
+                  </span>
+                </div>
+
+                {/* Attributes Rows */}
+                <div className="p-8 space-y-16 flex-1 bg-white/20">
+                  {/* Tuition */}
+                  <div className={`p-6 rounded-3xl border transition-all ${college.tuition === getBestValue(tuitionValues, "low") ? "bg-teal-50/50 border-teal-100 shadow-sm shadow-teal-50" : "bg-white/50 border-white"}`}>
+                    <div className="lg:hidden mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tuition</div>
+                    <div className="flex items-end justify-between">
+                      <p className={`text-2xl font-black ${college.tuition === getBestValue(tuitionValues, "low") ? "text-teal-600" : "text-slate-800"}`}>
+                        {formatTuition(college.tuition)}
+                      </p>
+                      {college.tuition === getBestValue(tuitionValues, "low") && (
+                        <div className="flex items-center gap-1 bg-teal-500 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter shadow-sm">
+                          <CheckCircle2 size={10} />
+                          Best Value
+                        </div>
+                      )}
                     </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {/* Tuition */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Tuition (per year)</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className={`p-4 text-center ${college.tuition === getBestValue(tuitionValues, "low") ? "bg-teal-50" : "bg-white"}`}>
-                    <span className={`text-lg font-semibold ${college.tuition === getBestValue(tuitionValues, "low") ? "text-teal-600" : "text-slate-800"}`}>
-                      {formatTuition(college.tuition)}
-                    </span>
-                    {college.tuition === getBestValue(tuitionValues, "low") && <span className="block text-xs text-teal-500">Best value</span>}
-                  </td>
-                ))}
-              </tr>
+                  </div>
 
-              {/* Admission Rate */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Admission Rate</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className="p-4 text-center bg-white">
-                    <span className="text-lg font-semibold text-slate-800">{formatRate(college.admission_rate)}</span>
-                  </td>
-                ))}
-              </tr>
+                  {/* Admission */}
+                  <div className="px-6">
+                    <div className="lg:hidden mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Admission Rate</div>
+                    <p className="text-2xl font-black text-slate-800">{formatRate(college.admission_rate)}</p>
+                  </div>
 
-              {/* Graduation Rate */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Graduation Rate</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className={`p-4 text-center ${college.graduation_rate === getBestValue(graduationValues, "high") ? "bg-teal-50" : "bg-white"}`}>
-                    <span className={`text-lg font-semibold ${college.graduation_rate === getBestValue(graduationValues, "high") ? "text-teal-600" : "text-slate-800"}`}>
-                      {formatRate(college.graduation_rate)}
-                    </span>
-                    {college.graduation_rate === getBestValue(graduationValues, "high") && <span className="block text-xs text-teal-500">Highest</span>}
-                  </td>
-                ))}
-              </tr>
+                  {/* Graduation */}
+                  <div className={`p-6 rounded-3xl border transition-all ${college.graduation_rate === getBestValue(graduationValues, "high") ? "bg-indigo-50/50 border-indigo-100 shadow-sm shadow-indigo-50" : "bg-white/50 border-white"}`}>
+                    <div className="lg:hidden mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Graduation Rate</div>
+                    <div className="flex items-end justify-between">
+                      <p className={`text-2xl font-black ${college.graduation_rate === getBestValue(graduationValues, "high") ? "text-indigo-600" : "text-slate-800"}`}>
+                        {formatRate(college.graduation_rate)}
+                      </p>
+                      {college.graduation_rate === getBestValue(graduationValues, "high") && (
+                        <div className="flex items-center gap-1 bg-indigo-500 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter shadow-sm">
+                          <Award size={10} />
+                          Highest
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Median Earnings */}
-              <tr>
-                <td className="p-4 bg-slate-50 font-medium text-slate-700">Median Earnings</td>
-                {colleges.map((college) => (
-                  <td key={college.id} className={`p-4 text-center ${college.median_earnings === getBestValue(earningsValues, "high") ? "bg-teal-50" : "bg-white"}`}>
-                    <span className={`text-lg font-semibold ${college.median_earnings === getBestValue(earningsValues, "high") ? "text-teal-600" : "text-slate-800"}`}>
-                      {formatEarnings(college.median_earnings)}
-                    </span>
-                    {college.median_earnings === getBestValue(earningsValues, "high") && <span className="block text-xs text-teal-500">Highest</span>}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                  {/* Earnings */}
+                  <div className={`p-6 rounded-3xl border transition-all ${college.median_earnings === getBestValue(earningsValues, "high") ? "bg-amber-50/50 border-amber-100 shadow-sm shadow-amber-50" : "bg-white/50 border-white"}`}>
+                    <div className="lg:hidden mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Median Earnings</div>
+                    <div className="flex items-end justify-between">
+                      <p className={`text-2xl font-black ${college.median_earnings === getBestValue(earningsValues, "high") ? "text-amber-600" : "text-slate-800"}`}>
+                        {formatEarnings(college.median_earnings)}
+                      </p>
+                      {college.median_earnings === getBestValue(earningsValues, "high") && (
+                        <div className="flex items-center gap-1 bg-amber-500 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter shadow-sm">
+                          <TrendingUp size={10} />
+                          Top Earner
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
-          <Link href="/search" className="btn-secondary flex-1 text-center">
+        <div className="mt-16 flex flex-col sm:flex-row gap-6">
+          <Link href="/search" className="h-16 flex-1 rounded-3xl flex items-center justify-center font-black text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all">
             ← Back to Search
+          </Link>
+          <Link href="/dashboard" className="h-16 flex-1 rounded-3xl flex items-center justify-center font-black text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-xl hover:shadow-teal-200 transition-all shadow-lg">
+            View My Dashboard
           </Link>
         </div>
       </div>

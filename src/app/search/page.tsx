@@ -1,10 +1,29 @@
-"use client";
+import { constructMetadata } from "@/lib/seo";
+
+export const metadata = constructMetadata({
+  title: "Search Colleges",
+  description: "Find and filter colleges by type, tuition, admission rates, and location. Discover your perfect educational path with our comprehensive search tools."
+});
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { addSearchHistory, addFavorite, removeFavorite, getFavorites } from "@/lib/supabase-client";
+import {
+  Search,
+  Filter,
+  MapPin,
+  DollarSign,
+  GraduationCap,
+  Building2,
+  Heart,
+  BarChart3,
+  RotateCcw,
+  ArrowRight,
+  TrendingUp,
+  Award
+} from 'lucide-react';
 
 interface College {
   id: number;
@@ -160,13 +179,18 @@ function SearchPageContent({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-slate-50/50">
+      <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Sidebar - Filters */}
-          <aside className="lg:w-72 flex-shrink-0">
-            <div className="card p-6 sticky top-24">
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">Filters</h2>
+          <aside className="lg:w-80 flex-shrink-0">
+            <div className="glass-card p-8 sticky top-24 border-indigo-50/50">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                  <Filter size={20} />
+                </div>
+                <h2 className="text-xl font-black text-slate-800 tracking-tight">Filters</h2>
+              </div>
 
               {/* Location / Radius Filter */}
               <div className="mb-6">
@@ -259,8 +283,9 @@ function SearchPageContent({
 
               <button
                 onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, zipCode: "", distance: 50 })}
-                className="w-full btn-secondary text-sm"
+                className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all text-sm mt-4"
               >
+                <RotateCcw size={16} />
                 Reset Filters
               </button>
             </div>
@@ -268,14 +293,22 @@ function SearchPageContent({
 
           {/* Main Content - Results */}
           <div className="flex-1">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-slate-800">Search Results</h1>
+            <div className="mb-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">Search Results</h1>
+              </div>
               {loading ? (
-                <p className="text-slate-500">Loading colleges...</p>
+                <div className="flex items-center gap-2 text-slate-400 font-medium ml-5">
+                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-pulse"></div>
+                  Loading colleges...
+                </div>
               ) : error ? (
-                <p className="text-red-500">{error}</p>
+                <p className="text-red-500 ml-5">{error}</p>
               ) : (
-                <p className="text-slate-500">{filteredColleges.length} colleges found</p>
+                <div className="flex items-center gap-2 text-slate-400 font-medium ml-5">
+                  <span className="text-indigo-600 font-bold">{filteredColleges.length}</span> colleges found
+                </div>
               )}
             </div>
 
@@ -301,14 +334,18 @@ function SearchPageContent({
                     filteredColleges.map((college, index) => (
                       <div
                         key={college.id}
-                        className={`card p-6 animate-fadeInUp stagger-${(index % 5) + 1}`}
+                        className="glass-card p-8 group hover:border-indigo-200 transition-all duration-500 animate-fadeInUp"
+                        style={{ animationDelay: `${index * 50}ms` }}
                       >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <Link href={`/college/${college.id}`} className="text-lg font-semibold text-slate-800 hover:text-teal-600 transition-colors">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="flex-1">
+                            <Link href={`/college/${college.id}`} className="text-xl font-black text-slate-800 hover:text-indigo-600 transition-colors block mb-1 tracking-tight">
                               {college.name}
                             </Link>
-                            <p className="text-slate-500 text-sm">{college.city}, {college.state}</p>
+                            <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                              <MapPin size={12} className="text-indigo-400" />
+                              {college.city}, {college.state}
+                            </div>
                           </div>
                           <div className="flex items-center gap-3">
                             {isAuthenticated && (
@@ -317,38 +354,59 @@ function SearchPageContent({
                                   e.preventDefault();
                                   toggleFavorite(college.id);
                                 }}
-                                className={`transition-colors ${userFavorites.includes(college.id) ? 'text-red-500' : 'text-slate-300 hover:text-red-400'}`}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${userFavorites.includes(college.id) ? 'bg-red-50 text-red-500 shadow-sm shadow-red-100' : 'bg-slate-50 text-slate-300 hover:text-red-400 hover:bg-red-50'}`}
                                 title={userFavorites.includes(college.id) ? "Remove from favorites" : "Add to favorites"}
                               >
-                                <svg className="w-6 h-6" fill={userFavorites.includes(college.id) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
+                                <Heart size={20} fill={userFavorites.includes(college.id) ? "currentColor" : "none"} />
                               </button>
                             )}
-                            <input
-                              type="checkbox"
-                              checked={compareList.includes(college.id)}
-                              onChange={() => toggleCompare(college.id)}
-                              className="checkbox-primary w-5 h-5"
-                              title="Add to compare"
-                            />
+                            <div className="relative group/check">
+                              <input
+                                type="checkbox"
+                                checked={compareList.includes(college.id)}
+                                onChange={() => toggleCompare(college.id)}
+                                className="w-10 h-10 rounded-xl border-2 border-slate-100 checked:bg-indigo-600 checked:border-indigo-600 transition-all appearance-none cursor-pointer"
+                                title="Add to compare"
+                              />
+                              <BarChart3 size={18} className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-colors ${compareList.includes(college.id) ? 'text-white' : 'text-slate-300'}`} />
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <span className="badge badge-secondary">{college.type}</span>
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
+                            {college.type}
+                          </span>
+                          {college.graduation_rate && college.graduation_rate > 0.7 && (
+                            <span className="px-3 py-1 bg-teal-50 text-teal-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-teal-100/50 flex items-center gap-1">
+                              <TrendingUp size={10} />
+                              High Grad Rate
+                            </span>
+                          )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <span className="text-slate-500">Tuition</span>
-                            <p className="font-semibold text-slate-800">{formatTuition(college.tuition)}/yr</p>
+                        <div className="grid grid-cols-2 gap-6 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 group-hover:bg-white transition-colors">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Est. Tuition</span>
+                            <div className="flex items-center gap-1">
+                              <DollarSign size={14} className="text-slate-400" />
+                              <p className="font-black text-slate-800">{formatTuition(college.tuition)}</p>
+                              <span className="text-[10px] text-slate-400 font-bold">/yr</span>
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-slate-500">Graduation Rate</span>
-                            <p className="font-semibold text-teal-600">{formatRate(college.graduation_rate)}</p>
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Success Rate</span>
+                            <div className="flex items-center gap-1">
+                              <Award size={14} className="text-teal-500" />
+                              <p className="font-black text-teal-600">{formatRate(college.graduation_rate)}</p>
+                            </div>
                           </div>
                         </div>
+
+                        <Link href={`/college/${college.id}`} className="mt-6 w-full h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center gap-2 font-black text-slate-600 text-sm hover:bg-slate-50 hover:border-indigo-100 transition-all group/btn">
+                          View Profile
+                          <ArrowRight size={16} className="text-slate-300 group-hover/btn:translate-x-1 transition-transform group-hover/btn:text-indigo-400" />
+                        </Link>
                       </div>
                     ))
                   ) : (
@@ -359,19 +417,15 @@ function SearchPageContent({
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-8 flex justify-center">
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50" disabled>
+                <div className="mt-12 flex justify-center">
+                  <div className="flex gap-3">
+                    <button className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-400 font-black text-xs uppercase tracking-widest flex items-center justify-center hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed" disabled>
                       Previous
                     </button>
-                    <button className="px-4 py-2 bg-teal-600 text-white rounded-lg">1</button>
-                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
-                      2
-                    </button>
-                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
-                      3
-                    </button>
-                    <button className="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+                    <button className="w-12 h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-indigo-100">1</button>
+                    <button className="w-12 h-12 border border-slate-200 text-slate-600 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all">2</button>
+                    <button className="w-12 h-12 border border-slate-200 text-slate-600 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all">3</button>
+                    <button className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-600 font-black text-xs uppercase tracking-widest flex items-center justify-center hover:bg-slate-50 transition-all">
                       Next
                     </button>
                   </div>
@@ -384,15 +438,16 @@ function SearchPageContent({
 
       {/* Floating Compare Button */}
       {compareList.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-10 right-10 z-50">
           <Link
             href={`/compare?colleges=${compareList.join(",")}`}
-            className="btn-primary shadow-lg flex items-center gap-2"
+            className="h-16 px-8 rounded-3xl bg-indigo-600 text-white font-black flex items-center gap-3 shadow-2xl shadow-indigo-200 hover:scale-105 transition-all group"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Compare ({compareList.length})
+            <BarChart3 size={20} className="group-hover:rotate-12 transition-transform" />
+            Compare Colleges
+            <span className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-[10px] font-black">
+              {compareList.length}
+            </span>
           </Link>
         </div>
       )}
