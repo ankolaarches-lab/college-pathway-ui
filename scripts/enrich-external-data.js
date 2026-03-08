@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const zipcodes = require('zipcodes');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -55,12 +56,12 @@ async function enrichData() {
         // 1. HUD Housing Data
         let housingStats = {};
         try {
-            const hudData = await fetchHUDHousingStats(college.zip);
+            const hudData = await fetchHUDHousingStats(college.zip, college.state, college.city);
             if (hudData) {
                 housingStats = {
-                    br0: hudData.studio,
-                    br1: hudData.one_bedroom,
-                    br2: hudData.two_bedroom,
+                    br0: hudData["Efficiency"] || hudData.studio,
+                    br1: hudData["One-Bedroom"] || hudData.one_bedroom,
+                    br2: hudData["Two-Bedroom"] || hudData.two_bedroom,
                     br2_year: hudData.year,
                     area_name: hudData.area_name
                 };
@@ -78,7 +79,7 @@ async function enrichData() {
             const fbiData = await fetchFBICrimeStats(college.city, college.state);
             if (fbiData) {
                 crimeStats = fbiData;
-                console.log(' ✅ FBI Data Found');
+                console.log(' ✅ FBI Data Found (Agency identified)');
             } else {
                 console.log(' ❌ No FBI Data');
             }
@@ -105,18 +106,71 @@ async function enrichData() {
     }
 }
 
-async function fetchHUDHousingStats(zip) {
-    // Try both current year and previous year
-    const years = ['2025', '2024'];
-    for (const year of years) {
-        const url = `https://www.huduser.gov/hudapi/public/fmr/data/${zip}?year=${year}`;
-        const res = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${HUD_API_KEY}` }
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.data?.basicdata) return data.data.basicdata;
+const stateFmrCache = {};
+
+async function fetchHUDHousingStats(zip, state, city) {
+    if (!HUD_API_KEY) return null;
+    const year = 2024;
+
+    try {
+        // 1. Get state FMR data (cached)
+        if (!stateFmrCache[state]) {
+            console.log(` 📥 Fetching HUD list for ${state}...`);
+            const listUrl = `https://www.huduser.gov/hudapi/public/fmr/statedata/${state}`;
+            const listRes = await fetch(listUrl, {
+                headers: { 'Authorization': `Bearer ${HUD_API_KEY.trim()}` }
+            });
+            if (listRes.ok) {
+                const listData = await listRes.json();
+                // Combine metro and county lists for easier matching
+                stateFmrCache[state] = [
+                    ...(listData.data?.metroareas || []),
+                    ...(listData.data?.counties || [])
+                ];
+            }
         }
+
+        // 2. Identify county
+        const zipInfo = zipcodes.lookup(zip);
+        const countyName = zipInfo?.county;
+
+        // 3. Match county or city in the HUD list
+        const match = stateFmrCache[state]?.find(item => {
+            const cName = (item.county_name || "").toLowerCase();
+            const mName = (item.metro_name || "").toLowerCase();
+            const tName = (item.town_name || "").toLowerCase();
+            const searchCity = (city || "").toLowerCase().trim();
+            const searchCounty = (countyName || "").toLowerCase().trim();
+
+            const isMatch = (searchCounty && cName.includes(searchCounty)) ||
+                (searchCity && mName.includes(searchCity)) ||
+                (searchCity && tName.includes(searchCity));
+
+            if (isMatch) console.log(`   ✨ Potential Match: ${mName || cName}`);
+            return isMatch;
+        });
+
+        if (!match) {
+            console.log(` ❌ No HUD FIPS match for city: "${city}", county: "${countyName}"`);
+            console.log(`    (Checked ${stateFmrCache[state]?.length} areas in ${state})`);
+            return null;
+        }
+
+        console.log(` ✅ Found HUD Area: ${match.metro_name || match.county_name} (${match.fips_code})`);
+
+        // 4. Fetch specific data for that FIPS/Code
+        const entityId = match.fips_code || match.code;
+        const fmrUrl = `https://www.huduser.gov/hudapi/public/fmr/data/${entityId}?year=${year}`;
+        const fmrRes = await fetch(fmrUrl, {
+            headers: { 'Authorization': `Bearer ${HUD_API_KEY.trim()}` }
+        });
+
+        if (fmrRes.ok) {
+            const data = await fmrRes.json();
+            return data.data?.basicdata || null;
+        }
+    } catch (error) {
+        console.error(` ❌ HUD Fetch Error:`, error.message);
     }
     return null;
 }
@@ -140,44 +194,82 @@ async function fetchFBICrimeStats(city, state) {
         } catch (e) { }
     }
 
-    if (!agencyData || !Array.isArray(agencyData)) return null;
+    let flatAgencies = [];
+    if (Array.isArray(agencyData)) {
+        flatAgencies = agencyData;
+    } else if (typeof agencyData === 'object') {
+        // CDE returns object with county keys
+        flatAgencies = Object.values(agencyData).flat();
+    }
+
+    if (flatAgencies.length === 0) {
+        console.log(` ❌ No agencies found for state ${state}`);
+        return null;
+    }
 
     const targetCity = city.toLowerCase();
-    const agency = agencyData.find(a =>
+    const agency = flatAgencies.find(a =>
+        a.agency_name &&
         (a.agency_name.toLowerCase().includes(targetCity) || a.agency_name.toLowerCase().includes(targetCity.replace(' ', ''))) &&
         a.agency_type_name === 'City'
     );
 
-    if (!agency) return null;
+    if (!agency) {
+        console.log(` ❌ No City agency found for ${city}.`);
+        return null;
+    }
 
-    // Fetch crime summary
-    const summaryPatterns = [
-        `https://api.usa.gov/crime/fbi/cde/summaries/agency/ori/${agency.ori}/violent-crime`,
-        `https://api.usa.gov/crime/fbi/sapi/api/summaries/agency/ori/${agency.ori}/violent-crime`
-    ];
+    console.log(` ✅ Found Agency: ${agency.agency_name} (${agency.ori})`);
 
-    for (const baseUrl of summaryPatterns) {
-        const url = `${baseUrl}?api_key=${FBI_API_KEY}`;
-        try {
-            const res = await fetch(url);
-            if (res.ok) {
-                const summary = await res.json();
-                if (summary.keys && summary.keys.length > 0) {
-                    const latest = summary.keys[summary.keys.length - 1];
-                    const data = summary.data.find(d => d.year === latest);
-                    if (data) {
-                        const pop = data.population || 100000;
-                        return {
-                            ori: agency.ori,
-                            agency_name: agency.agency_name,
-                            year: latest,
-                            violent_rate: (data.actual / pop) * 100000,
-                            status: 'success'
-                        };
+    // Fetch crime summaries
+    const crimeData = {};
+    const categories = ['violent-crime', 'property-crime'];
+
+    for (const category of categories) {
+        const summaryPatterns = [
+            `https://api.usa.gov/crime/fbi/cde/summaries/agency/ori/${agency.ori}/${category}`,
+            `https://api.usa.gov/crime/fbi/sapi/api/summaries/agency/ori/${agency.ori}/${category}`
+        ];
+
+        for (const baseUrl of summaryPatterns) {
+            const url = `${baseUrl}?api_key=${FBI_API_KEY}`;
+            try {
+                const res = await fetch(url);
+                if (res.ok) {
+                    const summary = await res.json();
+                    if (summary.data && summary.data.length > 0) {
+                        const stats = (summary.data || []).sort((a, b) => b.data_year - a.data_year).find(d => d.data_year >= 2020);
+                        if (stats) {
+                            const pop = stats.population || 100000;
+                            const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
+                            crimeData[key] = (stats.actual / pop) * 100000;
+                            crimeData[key + '_year'] = stats.data_year;
+                            break;
+                        }
+                    } else if (summary.keys && summary.keys.length > 0) {
+                        // CDE legacy format
+                        const latest = summary.keys[summary.keys.length - 1];
+                        const data = summary.data.find(d => d.year === latest);
+                        if (data) {
+                            const pop = data.population || 100000;
+                            const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
+                            crimeData[key] = (data.actual / pop) * 100000;
+                            crimeData[key + '_year'] = latest;
+                            break;
+                        }
                     }
                 }
-            }
-        } catch (e) { }
+            } catch (e) { }
+        }
+    }
+
+    if (Object.keys(crimeData).length > 0) {
+        return {
+            ori: agency.ori,
+            agency_name: agency.agency_name,
+            ...crimeData,
+            status: 'success'
+        };
     }
 
     return null;

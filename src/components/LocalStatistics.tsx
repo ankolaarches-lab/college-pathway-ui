@@ -79,7 +79,7 @@ export default function LocalStatistics({ cityCrimeStats, localHousingStats, cam
                                     <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-teal-400 rounded-full transition-all duration-1000"
-                                            style={{ width: `${Math.min((campusCrimeStats?.property_rate || 0) / 50, 100)}%` }}
+                                            style={{ width: `${Math.min((campusCrimeStats?.property_rate || 0) / 100, 100)}%` }}
                                         ></div>
                                     </div>
                                 </div>
@@ -91,7 +91,7 @@ export default function LocalStatistics({ cityCrimeStats, localHousingStats, cam
                                     <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-indigo-400 rounded-full transition-all duration-1000"
-                                            style={{ width: `${Math.min((cityCrimeStats?.property_rate || 0) / 50, 100)}%` }}
+                                            style={{ width: `${Math.min((cityCrimeStats?.property_rate || 0) / 100, 100)}%` }}
                                         ></div>
                                     </div>
                                 </div>
