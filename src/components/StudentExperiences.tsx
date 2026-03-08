@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import ContributorModal from './ContributorModal';
+import { MessageSquare, ThumbsUp, ShieldCheck, User, Calendar, PlusCircle } from 'lucide-react';
 
 interface Contribution {
     id: string;
@@ -68,88 +69,117 @@ export default function StudentExperiences({ institutionId, institutionName }: S
         return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
 
-    if (loading) return <div className="animate-pulse h-32 bg-slate-100 rounded-xl"></div>;
+    if (loading) return (
+        <div className="grid md:grid-cols-2 gap-6">
+            <div className="animate-pulse h-40 bg-slate-100 rounded-3xl"></div>
+            <div className="animate-pulse h-40 bg-slate-100 rounded-3xl"></div>
+        </div>
+    );
 
     return (
-        <section className="card p-8">
-            <div className="flex justify-between items-center mb-6">
+        <section className="glass-card p-8 md:p-10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                <MessageSquare size={120} />
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 pb-6 border-b border-slate-100/50">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800">Student Contributions</h2>
-                    <p className="text-slate-500 text-sm mt-1 flex items-center gap-1">
-                        <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Community-reported data from actual students.
+                    <h2 className="text-3xl font-black text-slate-800 tracking-tight">Student Experiences</h2>
+                    <p className="text-slate-500 text-sm mt-2 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        Community-reported insights from actual students.
                     </p>
                 </div>
                 {isAuthenticated && (
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="btn-primary"
+                        className="btn-primary group"
                     >
+                        <PlusCircle size={18} className="group-hover:rotate-90 transition-transform" />
                         Contribute Data
                     </button>
                 )}
             </div>
 
             {contributions.length === 0 ? (
-                <div className="text-center py-8 bg-slate-50 border-dashed border-2 border-slate-200 rounded-xl">
-                    <p className="text-slate-500 italic">No community data yet. Be the first to contribute!</p>
+                <div className="text-center py-16 bg-slate-50/50 border-dashed border-2 border-slate-200 rounded-3xl">
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <MessageSquare className="w-8 h-8 text-slate-300" />
+                    </div>
+                    <p className="text-slate-500 font-medium italic">No community data yet. Be the first to share your experience!</p>
                 </div>
             ) : (
-                <div className="grid md:grid-cols-2 gap-4">
-                    {contributions.map((contribution) => (
-                        <div key={contribution.id} className="p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow relative">
-                            <div className="flex justify-between items-start mb-2">
+                <div className="grid xl:grid-cols-2 gap-6">
+                    {contributions.map((contribution) => {
+                        const isVerified = contribution.verification_status === 'verified' || contribution.votes >= 3;
+                        return (
+                            <div key={contribution.id} className="glass-card-elevated p-6 flex flex-col justify-between hover:shadow-xl hover:shadow-indigo-50 transition-all group/item border border-white">
                                 <div>
-                                    <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">
-                                        {formatDataType(contribution.data_type)}
-                                    </span>
-                                    <p className="text-xl font-bold text-slate-800">
-                                        {contribution.data_type.includes('size') ? contribution.value : `$${contribution.value.toLocaleString()}`}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs font-medium text-slate-800">{contribution.user_profiles?.display_name || 'Anonymous'}</p>
-                                    <span className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-full font-bold uppercase">
-                                        {contribution.user_profiles?.reputation_level || 'Novice'}
-                                    </span>
-                                </div>
-                            </div>
-                            {contribution.description && (
-                                <p className="text-sm text-slate-600 mt-2 italic leading-snug">
-                                    "{contribution.description}"
-                                </p>
-                            )}
-                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${contribution.verification_status === 'verified'
-                                        ? 'bg-green-100 text-green-700'
-                                        : contribution.votes >= 3 ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
-                                        }`}>
-                                        {contribution.verification_status === 'verified' || (contribution.votes >= 3) ? 'COMMUNITY VERIFIED' : 'PENDING'}
-                                    </span>
-                                    <span className="text-[10px] text-slate-400">
-                                        {new Date(contribution.created_at).toLocaleDateString()}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-slate-400">{contribution.votes || 0}</span>
-                                    {isAuthenticated && user?.id !== contribution.user_id && (
-                                        <button
-                                            onClick={() => handleVote(contribution.id)}
-                                            className="p-1 hover:bg-slate-100 rounded-full transition-colors group"
-                                            title="Vouch for this data"
-                                        >
-                                            <svg className="w-4 h-4 text-slate-400 group-hover:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                            </svg>
-                                        </button>
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded">
+                                                {formatDataType(contribution.data_type)}
+                                            </span>
+                                            <p className="text-3xl font-black text-slate-800">
+                                                {contribution.data_type.includes('size') ? contribution.value : `$${contribution.value.toLocaleString()}`}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-right">
+                                            <div className="space-y-0.5">
+                                                <p className="text-xs font-bold text-slate-800">{contribution.user_profiles?.display_name || 'Anonymous'}</p>
+                                                <span className="badge badge-vibrant scale-90 origin-right">
+                                                    {contribution.user_profiles?.reputation_level || 'Novice'}
+                                                </span>
+                                            </div>
+                                            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                                                <User fill="currentColor" size={20} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {contribution.description && (
+                                        <div className="bg-slate-50/80 rounded-2xl p-4 mb-6 relative">
+                                            <div className="absolute -left-1 top-4 w-1 h-8 bg-indigo-200 rounded-full"></div>
+                                            <p className="text-sm text-slate-600 leading-relaxed indent-2 italic">
+                                                "{contribution.description}"
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
+
+                                <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                                    <div className="flex items-center gap-4">
+                                        {isVerified ? (
+                                            <div className="flex items-center gap-1.5 text-emerald-600 font-black text-[10px] tracking-tighter bg-emerald-50 px-2.5 py-1 rounded-full">
+                                                <ShieldCheck size={12} strokeWidth={3} />
+                                                COMMUNITY VERIFIED
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1.5 text-slate-400 font-black text-[10px] tracking-tighter bg-slate-50 px-2.5 py-1 rounded-full">
+                                                <Calendar size={12} strokeWidth={3} />
+                                                JUST POSTED
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="flex items-center px-3 py-1 bg-white rounded-full border border-slate-100 shadow-sm group/vouch">
+                                            <span className="text-xs font-black text-slate-800 mr-2">{contribution.votes || 0}</span>
+                                            {isAuthenticated && user?.id !== contribution.user_id && (
+                                                <button
+                                                    onClick={() => handleVote(contribution.id)}
+                                                    className="text-slate-300 hover:text-indigo-600 transition-colors p-1 -mr-1"
+                                                    title="Vouch for this data"
+                                                >
+                                                    <ThumbsUp size={14} fill={contribution.votes > 0 ? "currentColor" : "none"} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 

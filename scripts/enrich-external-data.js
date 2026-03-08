@@ -1,5 +1,10 @@
 /**
- * Data Enrichment Script (Ultra Robust Version)
+ * Data Enrichment Script (Production Scale Version)
+ * 
+ * Scaled to handle 6,400+ institutions with:
+ * - Batching (100 row window)
+ * - Rate limiting (1.1s delay for HUD)
+ * - Resumability (skips already enriched schools by default)
  */
 
 const fs = require('fs');
@@ -31,79 +36,121 @@ const FBI_API_KEY = process.env.FBI_API_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+// Config
+const BATCH_SIZE = 50;
+const HUD_DELAY_MS = 1100; // ~54 req/min
+const FORCE_RELOAD = process.argv.includes('--force');
+
 async function enrichData() {
-    console.log('🚀 Starting robust data enrichment...');
+    console.log(`🚀 Starting production-scale data enrichment... ${FORCE_RELOAD ? '(FORCE MODE)' : ''}`);
 
-    // Select specific interesting colleges for verification
-    const testIds = [100858, 101514, 158333, 207388, 166026, 110635]; // Auburn, UAB, Central Michigan, LSU, etc.
-    const { data: colleges, error } = await supabase
-        .from('institutions')
-        .select('id, name, city, state, zip')
-        .in('id', testIds);
+    let totalProcessed = 0;
+    let hasMore = true;
+    let lastId = 0;
 
-    if (error) { console.error('Supabase Error:', error); return; }
-    if (!colleges || colleges.length === 0) {
-        console.log('✅ No colleges found with ZIP codes that need enrichment.');
-        return;
-    }
-
-    console.log(`Processing ${colleges.length} colleges...`);
-
-    for (const college of colleges) {
-        console.log(`\n------------------`);
-        console.log(`${college.name} (${college.city}, ${college.state}) | ZIP: ${college.zip}`);
-
-        // 1. HUD Housing Data
-        let housingStats = {};
-        try {
-            const hudData = await fetchHUDHousingStats(college.zip, college.state, college.city);
-            if (hudData) {
-                housingStats = {
-                    br0: hudData["Efficiency"] || hudData.studio,
-                    br1: hudData["One-Bedroom"] || hudData.one_bedroom,
-                    br2: hudData["Two-Bedroom"] || hudData.two_bedroom,
-                    br2_year: hudData.year,
-                    area_name: hudData.area_name
-                };
-                console.log(' ✅ HUD Data Found');
-            } else {
-                console.log(' ❌ No HUD Data');
-            }
-        } catch (e) {
-            console.log(' ❌ HUD API Error:', e.message);
-        }
-
-        // 2. FBI Crime Data
-        let crimeStats = {};
-        try {
-            const fbiData = await fetchFBICrimeStats(college.city, college.state);
-            if (fbiData) {
-                crimeStats = fbiData;
-                console.log(' ✅ FBI Data Found (Agency identified)');
-            } else {
-                console.log(' ❌ No FBI Data');
-            }
-        } catch (e) {
-            console.log(' ❌ FBI API Error:', e.message);
-        }
-
-        // Update DB
-        const { error: updateError } = await supabase
+    while (hasMore) {
+        // Query batch
+        let query = supabase
             .from('institutions')
-            .update({
-                local_housing_stats: housingStats,
-                city_crime_stats: crimeStats
-            })
-            .eq('id', college.id);
+            .select('id, name, city, state, zip, local_housing_stats, city_crime_stats')
+            .gt('id', lastId)
+            .order('id', { ascending: true })
+            .limit(BATCH_SIZE);
 
-        if (updateError) {
-            console.error('Update Error:', updateError);
-        } else {
-            console.log(' 🎉 Updated successfully');
+        if (!FORCE_RELOAD) {
+            // Only fetch those that need work
+            // Note: Since we can't easily filter on null JSONB in one go with complex logic, 
+            // we'll fetch and filter in JS if needed, or rely on gt(id) for progression.
         }
 
-        await new Promise(r => setTimeout(r, 500));
+        const { data: colleges, error } = await query;
+
+        if (error) {
+            console.error('Supabase Error:', error);
+            break;
+        }
+
+        if (!colleges || colleges.length === 0) {
+            hasMore = false;
+            break;
+        }
+
+        console.log(`\n📦 Processing Batch: Institutions ${lastId}+ (Size: ${colleges.length})`);
+
+        for (const college of colleges) {
+            lastId = college.id;
+
+            // Skip if already done and not in force mode
+            const hasHousing = college.local_housing_stats && Object.keys(college.local_housing_stats).length > 0;
+            const hasCrime = college.city_crime_stats && Object.keys(college.city_crime_stats).length > 0;
+
+            if (!FORCE_RELOAD && hasHousing && hasCrime) {
+                // console.log(` ⏩ Skipping ${college.name} (Already enriched)`);
+                continue;
+            }
+
+            console.log(`\n🔹 ${college.name} (${college.city}, ${college.state})`);
+
+            // 1. HUD Housing Data
+            let housingStats = college.local_housing_stats || {};
+            if (FORCE_RELOAD || !hasHousing) {
+                try {
+                    const hudData = await fetchHUDHousingStats(college.zip, college.state, college.city);
+                    if (hudData) {
+                        housingStats = {
+                            br0: hudData["Efficiency"] || hudData.studio,
+                            br1: hudData["One-Bedroom"] || hudData.one_bedroom,
+                            br2: hudData["Two-Bedroom"] || hudData.two_bedroom,
+                            br2_year: hudData.year,
+                            area_name: hudData.area_name
+                        };
+                        console.log('   ✅ HUD Data Found');
+                    }
+                    // Rate limit delay
+                    await new Promise(r => setTimeout(r, HUD_DELAY_MS));
+                } catch (e) {
+                    console.log('   ❌ HUD API Error:', e.message);
+                }
+            }
+
+            // 2. FBI Crime Data
+            let crimeStats = college.city_crime_stats || {};
+            if (FORCE_RELOAD || !hasCrime) {
+                try {
+                    const fbiData = await fetchFBICrimeStats(college.city, college.state);
+                    if (fbiData) {
+                        crimeStats = fbiData;
+                        console.log('   ✅ FBI Data Found (Agency identified)');
+                    }
+                } catch (e) {
+                    console.log('   ❌ FBI API Error:', e.message);
+                }
+            }
+
+            // Update DB if we found anything new
+            if (Object.keys(housingStats).length > 0 || Object.keys(crimeStats).length > 0) {
+                const { error: updateError } = await supabase
+                    .from('institutions')
+                    .update({
+                        local_housing_stats: housingStats,
+                        city_crime_stats: crimeStats
+                    })
+                    .eq('id', college.id);
+
+                if (updateError) {
+                    console.error('   ❌ Update Error:', updateError);
+                } else {
+                    console.log('   🎉 DB Updated');
+                }
+            }
+
+            totalProcessed++;
+        }
+
+        console.log(`\n✅ Batch Complete. Total Processed so far: ${totalProcessed}`);
     }
+
+    console.log('\n🏁 ENRICHMENT PROCESS COMPLETE');
 }
 
 const stateFmrCache = {};
@@ -113,16 +160,14 @@ async function fetchHUDHousingStats(zip, state, city) {
     const year = 2024;
 
     try {
-        // 1. Get state FMR data (cached)
         if (!stateFmrCache[state]) {
-            console.log(` 📥 Fetching HUD list for ${state}...`);
+            console.log(`     📥 Fetching HUD list for ${state}...`);
             const listUrl = `https://www.huduser.gov/hudapi/public/fmr/statedata/${state}`;
             const listRes = await fetch(listUrl, {
                 headers: { 'Authorization': `Bearer ${HUD_API_KEY.trim()}` }
             });
             if (listRes.ok) {
                 const listData = await listRes.json();
-                // Combine metro and county lists for easier matching
                 stateFmrCache[state] = [
                     ...(listData.data?.metroareas || []),
                     ...(listData.data?.counties || [])
@@ -130,11 +175,9 @@ async function fetchHUDHousingStats(zip, state, city) {
             }
         }
 
-        // 2. Identify county
         const zipInfo = zipcodes.lookup(zip);
         const countyName = zipInfo?.county;
 
-        // 3. Match county or city in the HUD list
         const match = stateFmrCache[state]?.find(item => {
             const cName = (item.county_name || "").toLowerCase();
             const mName = (item.metro_name || "").toLowerCase();
@@ -142,23 +185,13 @@ async function fetchHUDHousingStats(zip, state, city) {
             const searchCity = (city || "").toLowerCase().trim();
             const searchCounty = (countyName || "").toLowerCase().trim();
 
-            const isMatch = (searchCounty && cName.includes(searchCounty)) ||
+            return (searchCounty && cName.includes(searchCounty)) ||
                 (searchCity && mName.includes(searchCity)) ||
                 (searchCity && tName.includes(searchCity));
-
-            if (isMatch) console.log(`   ✨ Potential Match: ${mName || cName}`);
-            return isMatch;
         });
 
-        if (!match) {
-            console.log(` ❌ No HUD FIPS match for city: "${city}", county: "${countyName}"`);
-            console.log(`    (Checked ${stateFmrCache[state]?.length} areas in ${state})`);
-            return null;
-        }
+        if (!match) return null;
 
-        console.log(` ✅ Found HUD Area: ${match.metro_name || match.county_name} (${match.fips_code})`);
-
-        // 4. Fetch specific data for that FIPS/Code
         const entityId = match.fips_code || match.code;
         const fmrUrl = `https://www.huduser.gov/hudapi/public/fmr/data/${entityId}?year=${year}`;
         const fmrRes = await fetch(fmrUrl, {
@@ -170,13 +203,12 @@ async function fetchHUDHousingStats(zip, state, city) {
             return data.data?.basicdata || null;
         }
     } catch (error) {
-        console.error(` ❌ HUD Fetch Error:`, error.message);
+        console.error(`     ❌ HUD Fetch Error:`, error.message);
     }
     return null;
 }
 
 async function fetchFBICrimeStats(city, state) {
-    // Try multiple endpoint patterns for agencies
     const patterns = [
         `https://api.usa.gov/crime/fbi/cde/agency/byStateAbbr/${state}`,
         `https://api.usa.gov/crime/fbi/sapi/api/agencies/byStateAbbr/${state}`
@@ -197,15 +229,11 @@ async function fetchFBICrimeStats(city, state) {
     let flatAgencies = [];
     if (Array.isArray(agencyData)) {
         flatAgencies = agencyData;
-    } else if (typeof agencyData === 'object') {
-        // CDE returns object with county keys
+    } else if (typeof agencyData === 'object' && agencyData !== null) {
         flatAgencies = Object.values(agencyData).flat();
     }
 
-    if (flatAgencies.length === 0) {
-        console.log(` ❌ No agencies found for state ${state}`);
-        return null;
-    }
+    if (flatAgencies.length === 0) return null;
 
     const targetCity = city.toLowerCase();
     const agency = flatAgencies.find(a =>
@@ -214,14 +242,8 @@ async function fetchFBICrimeStats(city, state) {
         a.agency_type_name === 'City'
     );
 
-    if (!agency) {
-        console.log(` ❌ No City agency found for ${city}.`);
-        return null;
-    }
+    if (!agency) return null;
 
-    console.log(` ✅ Found Agency: ${agency.agency_name} (${agency.ori})`);
-
-    // Fetch crime summaries
     const crimeData = {};
     const categories = ['violent-crime', 'property-crime'];
 
@@ -238,7 +260,7 @@ async function fetchFBICrimeStats(city, state) {
                 if (res.ok) {
                     const summary = await res.json();
                     if (summary.data && summary.data.length > 0) {
-                        const stats = (summary.data || []).sort((a, b) => b.data_year - a.data_year).find(d => d.data_year >= 2020);
+                        const stats = summary.data.sort((a, b) => b.data_year - a.data_year).find(d => d.data_year >= 2020);
                         if (stats) {
                             const pop = stats.population || 100000;
                             const key = category === 'violent-crime' ? 'violent_rate' : 'property_rate';
@@ -247,7 +269,6 @@ async function fetchFBICrimeStats(city, state) {
                             break;
                         }
                     } else if (summary.keys && summary.keys.length > 0) {
-                        // CDE legacy format
                         const latest = summary.keys[summary.keys.length - 1];
                         const data = summary.data.find(d => d.year === latest);
                         if (data) {
@@ -272,7 +293,7 @@ async function fetchFBICrimeStats(city, state) {
         };
     }
 
-    return null;
+    return { ori: agency.ori, agency_name: agency.agency_name };
 }
 
 enrichData();
