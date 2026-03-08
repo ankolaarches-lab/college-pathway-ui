@@ -2,6 +2,7 @@
 -- Run this in Supabase SQL Editor
 
 ALTER TABLE institutions
+ADD COLUMN IF NOT EXISTS zip TEXT,
 ADD COLUMN IF NOT EXISTS city_crime_stats JSONB DEFAULT '{}'::jsonb,
 ADD COLUMN IF NOT EXISTS local_housing_stats JSONB DEFAULT '{}'::jsonb,
 ADD COLUMN IF NOT EXISTS local_economic_stats JSONB DEFAULT '{}'::jsonb;
