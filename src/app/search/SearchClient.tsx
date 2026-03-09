@@ -158,8 +158,9 @@ function SearchPageContent({
         }
     };
 
+    // Note: type filtering is handled server-side (with pagination).
+    // Only apply client-side filters for things the API doesn't handle: minCost and admissionRate.
     const filteredColleges = (colleges || []).filter((college) => {
-        if (filters.type && !college.type.toLowerCase().includes(filters.type.toLowerCase())) return false;
         if (college.tuition && (college.tuition > filters.maxCost || college.tuition < filters.minCost)) return false;
         if (college.admission_rate && college.admission_rate > filters.admissionRate) return false;
         return true;
@@ -481,8 +482,8 @@ function SearchPageContent({
                                                         key={p}
                                                         onClick={() => { setCurrentPage(p as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                                         className={`w-12 h-12 rounded-2xl font-black text-sm transition-all ${currentPage === p
-                                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                                                : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                            : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
                                                             }`}
                                                     >
                                                         {p}
