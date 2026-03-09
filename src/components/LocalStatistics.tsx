@@ -70,45 +70,48 @@ export default function LocalStatistics({ cityCrimeStats, localHousingStats, cam
     );
 
     return (
-        <div className="space-y-10 section-blur">
+        <div className="space-y-16 py-12">
             {/* City Safety Comparison */}
             {hasCrimeData && (
-                <section className="glass-card-elevated p-8 md:p-10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <ShieldCheck size={120} />
+                <section className="glass-card-elevated p-10 relative overflow-hidden group border-none shadow-2xl shadow-indigo-100/20">
+                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-50/30 rounded-full blur-[100px] group-hover:bg-indigo-100/40 transition-colors duration-700"></div>
+                    <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
+                        <ShieldCheck size={160} />
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                                <ShieldCheck size={28} />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 pb-10 border-b border-slate-100">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
+                                <ShieldCheck size={32} />
                             </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-800">Campus vs. City Safety</h2>
-                                <p className="text-sm text-slate-500">Comparative crime rates normalized per 100,000 residents.</p>
+                            <div className="space-y-1">
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Security Benchmark</h2>
+                                <p className="text-[11px] text-slate-500 font-black uppercase tracking-[0.2em]">Campus vs. City Comparison (Per 100k)</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-16">
+                    <div className="grid md:grid-cols-2 gap-20">
                         <CrimeGauge
-                            label="Violent Crime Rate"
+                            label="Violent Offenses"
                             campusValue={campusCrimeStats?.violent_rate}
                             cityValue={cityCrimeStats?.violent_rate}
                             max={15}
                         />
                         <CrimeGauge
-                            label="Property Crime Rate"
+                            label="Property Crimes"
                             campusValue={campusCrimeStats?.property_rate}
                             cityValue={cityCrimeStats?.property_rate}
                             max={200}
                         />
                     </div>
 
-                    <div className="mt-10 flex items-start gap-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/50">
-                        <AlertTriangle className="w-4 h-4 text-indigo-400 mt-0.5" />
-                        <p className="text-[11px] text-indigo-900/60 leading-relaxed italic">
-                            Stats sourced from FBI Uniform Crime Reporting (UCR). These rates are based on agency reports and population estimates to provide a standard baseline for comparison.
+                    <div className="mt-12 flex items-start gap-4 bg-slate-900 rounded-[2rem] p-8 shadow-2xl relative z-10">
+                        <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-500 shrink-0">
+                            <AlertTriangle size={20} />
+                        </div>
+                        <p className="text-sm text-slate-400 leading-relaxed font-medium italic">
+                            Stats sourced from institutional reports and municipal data. These rates provide a standardized baseline for comparing safety across different environments.
                         </p>
                     </div>
                 </section>
@@ -116,46 +119,52 @@ export default function LocalStatistics({ cityCrimeStats, localHousingStats, cam
 
             {/* Local Housing Cost */}
             {hasHousingData && (
-                <section className="glass-card p-8 md:p-10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <Home size={120} />
+                <section className="glass-card p-10 relative overflow-hidden group border-none shadow-xl shadow-slate-100/50">
+                    <div className="absolute -left-20 -top-20 w-80 h-80 bg-teal-50/30 rounded-full blur-[100px] group-hover:bg-teal-100/40 transition-colors duration-700"></div>
+                    <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
+                        <Home size={160} />
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600">
-                                <Home size={28} />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 pb-10 border-b border-slate-100">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 shadow-sm">
+                                <Home size={32} />
                             </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-800 text-gradient">Local Housing Market</h2>
-                                <p className="text-sm text-slate-500">HUD Fair Market Rents for planning off-campus living.</p>
+                            <div className="space-y-1">
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Living In {cityName}</h2>
+                                <p className="text-[11px] text-slate-500 font-black uppercase tracking-[0.2em]">Off-Campus Market Estimator</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 bg-teal-50 px-3 py-1 rounded-full text-teal-700 text-xs font-bold uppercase tracking-wider">
-                            <TrendingUp size={12} />
-                            2024 Estimates
+                        <div className="h-10 px-6 bg-teal-50 text-teal-700 border border-teal-100 rounded-full flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-sm shadow-teal-50">
+                            <TrendingUp size={14} strokeWidth={3} />
+                            Current Fair Market Rents
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         {[
-                            { label: 'Studio', value: localHousingStats.br0 },
-                            { label: '1 Bedroom', value: localHousingStats.br1 },
-                            { label: '2 Bedrooms', value: localHousingStats.br2 },
-                            { label: '3 Bedrooms', value: localHousingStats.br3 }
+                            { label: 'Studio', value: localHousingStats.br0, icon: '🏠', color: 'from-teal-400 to-teal-500' },
+                            { label: '1 Bedroom', value: localHousingStats.br1, icon: '🏢', color: 'from-indigo-400 to-indigo-500' },
+                            { label: '2 Bedrooms', value: localHousingStats.br2, icon: '🏘️', color: 'from-emerald-400 to-emerald-500' },
+                            { label: '3 Bedrooms', value: localHousingStats.br3, icon: '🏢', color: 'from-sky-400 to-sky-500' }
                         ].map((item, idx) => (
-                            <div key={idx} className="p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-100 hover:border-teal-200 hover:shadow-lg hover:-translate-y-1 transition-all group/item">
-                                <p className="text-xs font-bold text-slate-400 uppercase mb-2 group-hover/item:text-teal-500 transition-colors">{item.label}</p>
-                                <p className="text-3xl font-black text-slate-800">${item.value?.toLocaleString()}</p>
-                                <p className="text-[10px] text-slate-400 mt-1">Per Month</p>
+                            <div key={idx} className="group/item relative p-8 bg-white/40 hover:bg-white rounded-[2.5rem] border border-white hover:border-teal-100 hover:shadow-2xl hover:shadow-teal-100/20 hover:-translate-y-2 transition-all duration-500 flex flex-col items-center text-center">
+                                <div className="text-3xl mb-4 group-hover/item:scale-125 transition-transform duration-500">{item.icon}</div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">{item.label}</p>
+                                <p className="text-4xl font-black text-slate-900 tracking-tighter mb-1">${item.value?.toLocaleString()}</p>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">Monthly Average</p>
                             </div>
                         ))}
                     </div>
 
-                    <p className="text-[10px] text-slate-400 mt-8 flex items-center gap-2">
-                        <Info size={12} />
-                        Data sourced from HUD Fair Market Rent (FMR) API. Prices represent median monthly gross rent estimates for the {cityName} area.
-                    </p>
+                    <div className="mt-12 p-6 bg-slate-50/80 rounded-[2rem] border border-slate-100 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-400 shrink-0 shadow-sm">
+                            <Info size={18} />
+                        </div>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed italic">
+                            Data provided by HUD Fair Market Rent (FMR). These estimates assist with financial planning for off-campus housing in the {cityName} metropolitan area.
+                        </p>
+                    </div>
                 </section>
             )}
         </div>

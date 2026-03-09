@@ -51,6 +51,7 @@ function SearchPageContent({
         distance: 50,
     });
     const [debouncedFilters, setDebouncedFilters] = useState(filters);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const { user, isAuthenticated } = useAuth();
 
@@ -169,108 +170,158 @@ function SearchPageContent({
     return (
         <div className="min-h-screen bg-slate-50/50">
             <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* Mobile Filter Toggle */}
+                <div className="lg:hidden mb-6">
+                    <button
+                        onClick={() => setIsFilterOpen(true)}
+                        className="w-full h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-between px-6 font-black text-slate-700 shadow-sm"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Filter size={20} className="text-indigo-600" />
+                            <span>Filter Results</span>
+                        </div>
+                        <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[10px]">
+                            {Object.values(filters).filter(v => v !== "" && v !== 0 && v !== 70000 && v !== 100 && v !== 50).length} active
+                        </span>
+                    </button>
+                </div>
+
                 <div className="flex flex-col lg:flex-row gap-8">
-                    <aside className="lg:w-80 flex-shrink-0">
-                        <div className="glass-card p-8 sticky top-24 border-indigo-50/50">
-                            <div className="flex items-center gap-3 mb-8">
-                                <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                                    <Filter size={20} />
+                    {/* Filter Sidebar - Desktop & Mobile Overlay */}
+                    <aside className={`
+                        lg:w-80 flex-shrink-0 
+                        ${isFilterOpen ? 'fixed inset-0 z-[60] p-6 bg-slate-900/40 backdrop-blur-sm lg:relative lg:bg-transparent lg:p-0' : 'hidden lg:block'}
+                    `}>
+                        <div className={`
+                            glass-card p-8 sticky top-24 border-indigo-50/50
+                            ${isFilterOpen ? 'max-h-[90vh] overflow-y-auto animate-fadeInUp' : ''}
+                        `}>
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                                        <Filter size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-black text-slate-800 tracking-tight">Filters</h2>
                                 </div>
-                                <h2 className="text-xl font-black text-slate-800 tracking-tight">Filters</h2>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-slate-700 mb-2">ZIP Code</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. 90210"
-                                    className="input-field mb-3"
-                                    value={filters.zipCode}
-                                    onChange={(e) => setFilters({ ...filters, zipCode: e.target.value })}
-                                    maxLength={5}
-                                />
-
-                                {filters.zipCode.length === 5 && (
-                                    <>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Distance: Within {filters.distance} miles
-                                        </label>
-                                        <input
-                                            type="range"
-                                            min="10"
-                                            max="500"
-                                            step="10"
-                                            value={filters.distance}
-                                            onChange={(e) => setFilters({ ...filters, distance: parseInt(e.target.value) })}
-                                            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
-                                        />
-                                        <div className="flex justify-between text-xs text-slate-500 mt-1">
-                                            <span>10 mi</span>
-                                            <span>500 mi</span>
-                                        </div>
-                                    </>
+                                {isFilterOpen && (
+                                    <button
+                                        onClick={() => setIsFilterOpen(false)}
+                                        className="lg:hidden w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500"
+                                    >
+                                        <ArrowRight size={20} className="rotate-180" />
+                                    </button>
                                 )}
                             </div>
 
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-slate-700 mb-2">College Type</label>
-                                <select
-                                    className="input-field"
-                                    value={filters.type}
-                                    onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Location</label>
+                                    <input
+                                        type="text"
+                                        placeholder="ZIP Code (e.g. 90210)"
+                                        className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-300"
+                                        value={filters.zipCode}
+                                        onChange={(e) => setFilters({ ...filters, zipCode: e.target.value })}
+                                        maxLength={5}
+                                    />
+
+                                    {filters.zipCode.length === 5 && (
+                                        <div className="mt-4 p-4 bg-indigo-50/30 rounded-xl border border-indigo-50/50">
+                                            <label className="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">
+                                                Distance: {filters.distance} miles
+                                            </label>
+                                            <input
+                                                type="range"
+                                                min="10"
+                                                max="500"
+                                                step="10"
+                                                value={filters.distance}
+                                                onChange={(e) => setFilters({ ...filters, distance: parseInt(e.target.value) })}
+                                                className="w-full h-1.5 bg-indigo-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                            />
+                                            <div className="flex justify-between text-[10px] font-bold text-indigo-300 mt-2">
+                                                <span>10mi</span>
+                                                <span>500mi</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">College Type</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {['Public', 'Private', '4-Year', '2-Year'].map(type => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setFilters({ ...filters, type: filters.type === type.toLowerCase() ? "" : type.toLowerCase() })}
+                                                className={`h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${filters.type === type.toLowerCase()
+                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                    : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-100 hover:text-indigo-600'
+                                                    }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between items-end mb-3">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Max Tuition</label>
+                                        <span className="text-sm font-black text-slate-700">${(filters.maxCost / 1000).toFixed(0)}k<span className="text-[10px] text-slate-400 ml-0.5">/yr</span></span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="70000"
+                                        step="1000"
+                                        value={filters.maxCost}
+                                        onChange={(e) => setFilters({ ...filters, maxCost: parseInt(e.target.value) })}
+                                        className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                    />
+                                    <div className="flex justify-between text-[10px] font-bold text-slate-300 mt-2">
+                                        <span>$0</span>
+                                        <span>$70k+</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between items-end mb-3">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inclusivity</label>
+                                        <span className="text-sm font-black text-slate-700">{filters.admissionRate}%<span className="text-[10px] text-slate-400 ml-0.5">adm</span></span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="100"
+                                        value={filters.admissionRate}
+                                        onChange={(e) => setFilters({ ...filters, admissionRate: parseInt(e.target.value) })}
+                                        className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                    />
+                                    <div className="flex justify-between text-[10px] font-bold text-slate-300 mt-2">
+                                        <span>1%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-10 pt-8 border-t border-slate-100 space-y-3">
+                                <button
+                                    onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, zipCode: "", distance: 50 })}
+                                    className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-slate-400 hover:text-slate-600 transition-all text-[10px] uppercase tracking-widest"
                                 >
-                                    <option value="">All Types</option>
-                                    <option value="public">Public</option>
-                                    <option value="private">Private</option>
-                                    <option value="2-year">2-Year</option>
-                                    <option value="4-year">4-Year</option>
-                                </select>
+                                    <RotateCcw size={14} />
+                                    Reset Filters
+                                </button>
+                                {isFilterOpen && (
+                                    <button
+                                        onClick={() => setIsFilterOpen(false)}
+                                        className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-100"
+                                    >
+                                        Show Results
+                                    </button>
+                                )}
                             </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Max Tuition: ${filters.maxCost.toLocaleString()}/year
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="70000"
-                                    step="1000"
-                                    value={filters.maxCost}
-                                    onChange={(e) => setFilters({ ...filters, maxCost: parseInt(e.target.value) })}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
-                                />
-                                <div className="flex justify-between text-xs text-slate-500 mt-1">
-                                    <span>$0</span>
-                                    <span>$70K</span>
-                                </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Max Admission Rate: {filters.admissionRate}%
-                                </label>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="100"
-                                    value={filters.admissionRate}
-                                    onChange={(e) => setFilters({ ...filters, admissionRate: parseInt(e.target.value) })}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
-                                />
-                                <div className="flex justify-between text-xs text-slate-500 mt-1">
-                                    <span>1%</span>
-                                    <span>100%</span>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, zipCode: "", distance: 50 })}
-                                className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-slate-500 bg-slate-100 hover:bg-slate-200 transition-all text-sm mt-4"
-                            >
-                                <RotateCcw size={16} />
-                                Reset Filters
-                            </button>
                         </div>
                     </aside>
 
@@ -420,7 +471,7 @@ function SearchPageContent({
                 <div className="fixed bottom-10 right-10 z-50">
                     <Link
                         href={`/compare?colleges=${compareList.join(",")}`}
-                        className="h-16 px-8 rounded-3xl bg-indigo-600 text-white font-black flex items-center gap-3 shadow-2xl shadow-indigo-200 hover:scale-105 transition-all group"
+                        className="h-16 px-8 rounded-3xl bg-indigo-600 text-white font-black flex items-center gap-3 shadow-2xl shadow-indigo-100 hover:scale-105 transition-all group"
                     >
                         <BarChart3 size={20} className="group-hover:rotate-12 transition-transform" />
                         Compare Colleges

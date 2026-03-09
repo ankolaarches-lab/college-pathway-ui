@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { Mail, Lock, User, ArrowRight, X, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: { isOpen?: boolean; onClose?: () => void; initialMode?: string }) {
   const [mode, setMode] = useState(initialMode);
@@ -11,7 +12,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: { 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
-  
+
   const { login, signup } = useAuth();
 
   if (!isOpen) return null;
@@ -52,111 +53,137 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: { 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 animate-fadeIn">
+      <div className="relative bg-white/90 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/50 animate-fadeInScale">
+        {/* Top Accent */}
+        <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-500 via-teal-500 to-indigo-500"></div>
+
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+          className="absolute top-6 right-6 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all z-10"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X size={20} />
         </button>
 
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-          </h2>
-          <p className="text-slate-500 mt-1">
-            {mode === 'login' 
-              ? 'Sign in to save favorites and track your searches' 
-              : 'Join to save colleges and track your journey'}
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'signup' && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Display Name
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-                placeholder="Your name"
-              />
+        <div className="p-10 pt-16">
+          <div className="flex flex-col items-center text-center mb-10">
+            <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-600 mb-6 shadow-xl shadow-indigo-100/50">
+              <Sparkles size={40} />
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-              placeholder="you@example.com"
-              required
-            />
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">
+              {mode === 'login' ? 'Welcome back' : 'Join the elite'}
+            </h2>
+            <p className="text-slate-500 font-medium leading-relaxed">
+              {mode === 'login'
+                ? 'Access your curated path to higher education.'
+                : 'Your journey to academic excellence begins here.'}
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-              placeholder="••••••••"
-              required
-              minLength={6}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Display Name</label>
+                </div>
+                <div className="relative group">
+                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl focus:border-indigo-100 focus:bg-white focus:ring-4 focus:ring-indigo-50 outline-none font-bold text-slate-900 placeholder:text-slate-300 transition-all"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </div>
+            )}
 
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-              {error}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institutional Email</label>
+              </div>
+              <div className="relative group">
+                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl focus:border-indigo-100 focus:bg-white focus:ring-4 focus:ring-indigo-50 outline-none font-bold text-slate-900 placeholder:text-slate-300 transition-all"
+                  placeholder="you@university.edu"
+                  required
+                />
+              </div>
             </div>
-          )}
 
-          {success && (
-            <div className="bg-green-50 text-green-600 p-3 rounded-lg text-sm">
-              {success}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+                {mode === 'login' && (
+                  <button type="button" className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-600">Forgot?</button>
+                )}
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border-2 border-transparent rounded-2xl focus:border-indigo-100 focus:bg-white focus:ring-4 focus:ring-indigo-50 outline-none font-bold text-slate-900 placeholder:text-slate-300 transition-all"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-          </button>
-        </form>
+            {error && (
+              <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl text-xs font-bold animate-shake">
+                {error}
+              </div>
+            )}
 
-        <div className="mt-6 text-center">
-          <p className="text-slate-500">
-            {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+            {success && (
+              <div className="bg-emerald-50 border border-emerald-100 text-emerald-600 p-4 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <ShieldCheck size={16} />
+                {success}
+              </div>
+            )}
+
             <button
-              onClick={switchMode}
-              className="ml-1 text-teal-600 hover:text-teal-700 font-medium"
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-3 font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {mode === 'login' ? 'Sign up' : 'Sign in'}
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  {mode === 'login' ? 'Sign In' : 'Create Account'}
+                  <ArrowRight size={18} />
+                </>
+              )}
             </button>
-          </p>
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-slate-500 text-sm font-medium">
+              {mode === 'login' ? "New to the platform?" : 'Already have an account?'}
+              <button
+                onClick={switchMode}
+                className="ml-2 text-indigo-600 hover:text-indigo-700 font-black uppercase text-[10px] tracking-widest"
+              >
+                {mode === 'login' ? 'Create Account' : 'Sign In'}
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>
