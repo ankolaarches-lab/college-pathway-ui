@@ -4,9 +4,12 @@ const siteConfig = {
     name: 'CollegePath',
     title: 'College Pathway Explorer',
     description: 'Empowering students and parents with data-driven insights to find the perfect college path. Compare tuition, careers, and graduation outcomes.',
-    url: 'https://college-pathway-explorer.vercel.app',
-    ogImage: 'https://college-pathway-explorer.vercel.app/og-image.png', // We should generate this or have a placeholder
+    url: 'https://www.gradetograd.com',
+    ogImage: 'https://www.gradetograd.com/og-image.png',
     twitterHandle: '@collegepath',
+    // Replace the value below with your Google Search Console HTML tag verification token
+    // (just the content="..." value, not the entire tag)
+    googleSearchConsoleToken: 'REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_TOKEN',
 };
 
 export function constructMetadata({
@@ -55,6 +58,9 @@ export function constructMetadata({
             apple: '/apple-touch-icon.png',
         },
         metadataBase: new URL(siteConfig.url),
+        verification: {
+            google: siteConfig.googleSearchConsoleToken,
+        },
         ...(noIndex && {
             robots: {
                 index: false,
