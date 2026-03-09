@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -51,8 +53,8 @@ export default function Header() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-            ? 'py-3 bg-white/80 backdrop-blur-xl shadow-lg border-b border-white'
-            : 'py-6 bg-transparent'
+          ? 'py-3 bg-white/80 backdrop-blur-xl shadow-lg border-b border-white'
+          : 'py-6 bg-transparent'
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">

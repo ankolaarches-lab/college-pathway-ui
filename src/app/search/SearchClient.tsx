@@ -37,11 +37,15 @@ function SearchPageContent({
 }: {
     searchParams: ReturnType<typeof useSearchParams>;
 }) {
+    const RESULTS_PER_PAGE = 24;
+
     const [colleges, setColleges] = useState<College[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [compareList, setCompareList] = useState<number[]>([]);
     const [userFavorites, setUserFavorites] = useState<number[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
     const [filters, setFilters] = useState({
         type: "",
         minCost: 0,
@@ -75,6 +79,7 @@ function SearchPageContent({
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedFilters(filters);
+            setCurrentPage(1); // Reset to page 1 on filter change
         }, 1000);
 
         return () => clearTimeout(timer);
@@ -99,6 +104,8 @@ function SearchPageContent({
                     params.set('zip', debouncedFilters.zipCode);
                     params.set('distance', debouncedFilters.distance.toString());
                 }
+                params.set('limit', RESULTS_PER_PAGE.toString());
+                params.set('offset', ((currentPage - 1) * RESULTS_PER_PAGE).toString());
 
                 const response = await fetch(`/api/colleges?${params.toString()}`);
                 if (!response.ok) {
@@ -106,13 +113,14 @@ function SearchPageContent({
                 }
                 const data = await response.json();
                 setColleges(Array.isArray(data.colleges) ? data.colleges : []);
+                setTotalCount(data.total || 0);
 
                 if (isAuthenticated && user) {
                     await addSearchHistory(
                         user.id,
                         searchQuery || '',
                         { type: debouncedFilters.type, state: searchState, max_tuition: debouncedFilters.maxCost },
-                        Array.isArray(data.colleges) ? data.colleges.length : 0
+                        data.total || 0
                     );
                 }
             } catch (err) {
@@ -124,7 +132,7 @@ function SearchPageContent({
         }
 
         fetchColleges();
-    }, [debouncedFilters, searchState, searchQuery, isAuthenticated, user]);
+    }, [debouncedFilters, currentPage, searchState, searchQuery, isAuthenticated, user]);
 
     const toggleCompare = (id: number) => {
         if (compareList.includes(id)) {
@@ -340,7 +348,8 @@ function SearchPageContent({
                                 <p className="text-red-500 ml-5">{error}</p>
                             ) : (
                                 <div className="flex items-center gap-2 text-slate-400 font-medium ml-5">
-                                    <span className="text-indigo-600 font-bold">{filteredColleges.length}</span> colleges found
+                                    <span className="text-indigo-600 font-bold">{totalCount}</span> colleges found
+                                    {totalCount > 0 && <span className="text-slate-300">· page {currentPage} of {Math.ceil(totalCount / RESULTS_PER_PAGE)}</span>}
                                 </div>
                             )}
                         </div>
@@ -448,19 +457,48 @@ function SearchPageContent({
                                     )}
                                 </div>
 
-                                <div className="mt-12 flex justify-center">
-                                    <div className="flex gap-3">
-                                        <button className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-400 font-black text-xs uppercase tracking-widest flex items-center justify-center hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed" disabled>
-                                            Previous
-                                        </button>
-                                        <button className="w-12 h-12 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-indigo-100">1</button>
-                                        <button className="w-12 h-12 border border-slate-200 text-slate-600 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all">2</button>
-                                        <button className="w-12 h-12 border border-slate-200 text-slate-600 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all">3</button>
-                                        <button className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-600 font-black text-xs uppercase tracking-widest flex items-center justify-center hover:bg-slate-50 transition-all">
-                                            Next
-                                        </button>
+                                {totalCount > RESULTS_PER_PAGE && (
+                                    <div className="mt-12 flex justify-center">
+                                        <div className="flex gap-3 flex-wrap justify-center">
+                                            <button
+                                                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                                disabled={currentPage === 1}
+                                                className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-400 font-black text-xs uppercase tracking-widest flex items-center justify-center hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                Previous
+                                            </button>
+                                            {Array.from({ length: Math.ceil(totalCount / RESULTS_PER_PAGE) }, (_, i) => i + 1)
+                                                .filter(p => p === 1 || p === Math.ceil(totalCount / RESULTS_PER_PAGE) || Math.abs(p - currentPage) <= 1)
+                                                .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                                                    if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push('...');
+                                                    acc.push(p);
+                                                    return acc;
+                                                }, [])
+                                                .map((p, i) => p === '...' ? (
+                                                    <span key={`ellipsis-${i}`} className="w-12 h-12 flex items-center justify-center text-slate-400 font-black">…</span>
+                                                ) : (
+                                                    <button
+                                                        key={p}
+                                                        onClick={() => { setCurrentPage(p as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                                        className={`w-12 h-12 rounded-2xl font-black text-sm transition-all ${currentPage === p
+                                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                                : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                            }`}
+                                                    >
+                                                        {p}
+                                                    </button>
+                                                ))
+                                            }
+                                            <button
+                                                onClick={() => { setCurrentPage(p => Math.min(Math.ceil(totalCount / RESULTS_PER_PAGE), p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                                disabled={currentPage === Math.ceil(totalCount / RESULTS_PER_PAGE)}
+                                                className="h-12 px-6 rounded-2xl border border-slate-200 text-slate-600 font-black text-xs uppercase tracking-widest flex items-center justify-center hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </>
                         )}
                     </div>
