@@ -18,13 +18,14 @@ const STATE_SLUGS = [
 
 async function getAllCollegeIds(): Promise<number[]> {
     try {
+        const apiBase = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
         // Fetch all college IDs in batches
         const ids: number[] = [];
         let offset = 0;
         const limit = 500;
 
         while (true) {
-            const res = await fetch(`${BASE_URL}/api/colleges?limit=${limit}&offset=${offset}`, {
+            const res = await fetch(`${apiBase}/api/colleges?limit=${limit}&offset=${offset}`, {
                 next: { revalidate: 86400 }, // Re-fetch once per day
             });
             if (!res.ok) break;
