@@ -9,7 +9,7 @@ const siteConfig = {
     twitterHandle: '@collegepath',
     // Replace the value below with your Google Search Console HTML tag verification token
     // (just the content="..." value, not the entire tag)
-    googleSearchConsoleToken: 'REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_TOKEN',
+    googleSearchConsoleToken: 'Hn0J_VQwUgU3oYhZBF2bdU5-FhpSS19pwJ7uB1TxsiM',
 };
 
 export function constructMetadata({

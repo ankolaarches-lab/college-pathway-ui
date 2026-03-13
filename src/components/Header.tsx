@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import AuthModal from './AuthModal';
-import { Menu, X, User, Zap, Award, LogOut, Heart, History, Search, RefreshCcw, ChevronDown } from 'lucide-react';
+import { Menu, X, User, Zap, Award, LogOut, Heart, History, Search, RefreshCcw, ChevronDown, GraduationCap } from 'lucide-react';
 
 export default function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -40,6 +40,7 @@ export default function Header() {
 
   const navLinks = [
     { name: 'Search', href: '/search', icon: Search },
+    { name: 'Scholarships', href: '/scholarships', icon: GraduationCap },
     { name: 'Transfer', href: '/transfer-pathways', icon: RefreshCcw },
   ];
 
