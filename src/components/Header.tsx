@@ -41,7 +41,7 @@ export default function Header() {
   const navLinks = [
     { name: 'Search', href: '/search', icon: Search },
     { name: 'Scholarships', href: '/scholarships', icon: GraduationCap },
-    { name: 'Transfer', href: '/transfer-pathways', icon: RefreshCcw },
+    { name: 'Transfer', href: '/transfer-pathways', icon: RefreshCcw, soon: true },
   ];
 
   const userLinks = [
@@ -79,10 +79,15 @@ export default function Header() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-xs font-black uppercase tracking-widest transition-all hover:text-indigo-600 ${scrolled ? 'text-slate-600' : 'text-slate-500'
+                className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all hover:text-indigo-600 ${scrolled ? 'text-slate-600' : 'text-slate-500'
                   }`}
               >
                 {link.name}
+                {link.soon && (
+                  <span className="h-4 px-1.5 bg-indigo-100 text-indigo-500 rounded text-[8px] font-black uppercase tracking-widest leading-none flex items-center">
+                    Soon
+                  </span>
+                )}
               </Link>
             ))}
 
@@ -164,12 +169,6 @@ export default function Header() {
             ) : (
               <div className="hidden md:flex items-center gap-6">
                 <button
-                  onClick={handleLoginClick}
-                  className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 transition-all font-inter"
-                >
-                  Sign In
-                </button>
-                <button
                   onClick={handleSignupClick}
                   className="h-12 px-8 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-100 hover:scale-105 transition-all"
                 >
@@ -223,6 +222,11 @@ export default function Header() {
                     <link.icon size={18} />
                   </div>
                   <span className="font-black text-sm text-slate-700 group-hover:text-indigo-600">{link.name}</span>
+                  {link.soon && (
+                    <span className="h-4 px-1.5 bg-indigo-100 text-indigo-500 rounded text-[8px] font-black uppercase tracking-widest leading-none flex items-center ml-auto">
+                      Soon
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>
@@ -260,12 +264,6 @@ export default function Header() {
                   className="w-full h-14 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-100"
                 >
                   Create Account
-                </button>
-                <button
-                  onClick={handleLoginClick}
-                  className="w-full h-14 bg-white border border-slate-100 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500"
-                >
-                  Sign In
                 </button>
               </div>
             )}
