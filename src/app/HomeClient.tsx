@@ -206,6 +206,51 @@ export default function HomeClient() {
                 </div>
             </section>
 
+            {/* Browse by State Section */}
+            <section className="py-16 px-4 bg-slate-50">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-4">Browse Colleges by State</h2>
+                        <p className="text-slate-600">Find the best colleges in your state</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {[
+                            { name: 'California', slug: 'california', code: 'CA' },
+                            { name: 'Texas', slug: 'texas', code: 'TX' },
+                            { name: 'New York', slug: 'new-york', code: 'NY' },
+                            { name: 'Florida', slug: 'florida', code: 'FL' },
+                            { name: 'Illinois', slug: 'illinois', code: 'IL' },
+                            { name: 'Pennsylvania', slug: 'pennsylvania', code: 'PA' },
+                            { name: 'Ohio', slug: 'ohio', code: 'OH' },
+                            { name: 'Georgia', slug: 'georgia', code: 'GA' },
+                            { name: 'North Carolina', slug: 'north-carolina', code: 'NC' },
+                            { name: 'Michigan', slug: 'michigan', code: 'MI' },
+                            { name: 'New Jersey', slug: 'new-jersey', code: 'NJ' },
+                            { name: 'Virginia', slug: 'virginia', code: 'VA' },
+                        ].map((state) => (
+                            <Link
+                                key={state.slug}
+                                href={`/colleges/${state.slug}`}
+                                className="glass-card p-5 text-center hover:border-indigo-200 transition-all duration-300 group no-underline"
+                            >
+                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-1">{state.code}</span>
+                                <span className="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{state.name}</span>
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div className="text-center mt-10">
+                        <Link href="/search" className="btn-secondary inline-flex items-center gap-2">
+                            View All States
+                            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
             {/* Community Impact & Leaderboard Section */}
             <section className="py-32 px-6 bg-[#0f172a] text-white overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>

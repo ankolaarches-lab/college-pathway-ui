@@ -97,10 +97,40 @@ export async function generateMetadata({
     const stateInfo = STATE_MAP[params.state];
     if (!stateInfo) return constructMetadata({ noIndex: true });
 
-    return constructMetadata({
+    const baseUrl = 'https://www.gradetograd.com';
+    const pageUrl = `${baseUrl}/colleges/${params.state}`;
+
+    return {
         title: `Colleges in ${stateInfo.name} — Tuition, Acceptance Rates & Outcomes`,
         description: `Browse all colleges and universities in ${stateInfo.name}. Compare tuition costs, acceptance rates, graduation rates, and career outcomes to find your perfect college path.`,
-    });
+        alternates: {
+            canonical: pageUrl,
+            languages: {
+                'en-US': pageUrl,
+            },
+        },
+        openGraph: {
+            title: `Colleges in ${stateInfo.name} — Tuition, Acceptance Rates & Outcomes`,
+            description: `Browse ${stateInfo.name} colleges and universities. Compare tuition, acceptance rates, graduation rates, and career outcomes.`,
+            url: pageUrl,
+            siteName: 'CollegePath',
+            type: 'website',
+            locale: 'en_US',
+            images: [
+                {
+                    url: `${baseUrl}/og-image.png`,
+                    width: 1200,
+                    height: 630,
+                    alt: `Colleges in ${stateInfo.name}`,
+                },
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `Colleges in ${stateInfo.name}`,
+            description: `Browse ${stateInfo.name} colleges and universities.`,
+        },
+    };
 }
 
 export default async function StateCollegePage({
