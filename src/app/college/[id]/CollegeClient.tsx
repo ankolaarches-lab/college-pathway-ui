@@ -132,7 +132,7 @@ export default function CollegeClient({ collegeId }: { collegeId: string }) {
     };
 
     const formatTuition = (tuition: number | null) => {
-        if (tuition === null) return 'N/A';
+        if (tuition === null) return 'Not Reported';
         return `$${tuition.toLocaleString()}`;
     };
 
@@ -278,7 +278,7 @@ export default function CollegeClient({ collegeId }: { collegeId: string }) {
                             ) : (
                                 <p className="text-slate-600 leading-relaxed text-lg font-medium">
                                     {college.name} is a distinguished {college.type} institution located in {college.city}, {college.state}.
-                                    {college.tuition && ` With a competitive tuition profile of ${formatTuition(college.tuition)}, it remains an attractive choice for ambitious students.`}
+                                    {college.tuition && ` With a competitive tuition profile of $${college.tuition.toLocaleString()}, it remains an attractive choice for ambitious students.`}
                                     {college.graduation_rate && ` A strong graduation rate of ${formatRate(college.graduation_rate)} underscores its academic rigor and effective student support systems.`}
                                 </p>
                             )}
@@ -477,7 +477,9 @@ export default function CollegeClient({ collegeId }: { collegeId: string }) {
                                 <div className="space-y-6">
                                     <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Total Sticker Price</p>
-                                        <p className="text-4xl font-black text-white tracking-tighter">{formatTuition(college.tuition)}</p>
+                                        <p className={`font-black text-white tracking-tighter ${college.tuition === null ? 'text-xl' : 'text-4xl'}`}>
+                                            {formatTuition(college.tuition)}
+                                        </p>
                                         <p className="text-xs text-slate-500 mt-2 font-medium">Estimated cost before aid.</p>
                                     </div>
 
