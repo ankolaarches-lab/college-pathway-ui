@@ -72,7 +72,7 @@ interface College {
 
 async function getCollegesForState(stateCode: string): Promise<{ colleges: College[]; total: number }> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gradetograd.com';
         const res = await fetch(`${baseUrl}/api/colleges?state=${stateCode}&limit=100`, {
             next: { revalidate: 3600 },
         });
