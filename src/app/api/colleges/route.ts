@@ -146,6 +146,7 @@ export async function GET(request: NextRequest) {
     const searchQuery = searchParams.get('q')?.toLowerCase();
     const zipCode = searchParams.get('zip');
     const distanceMiles = parseInt(searchParams.get('distance') || '50');
+    const tierFilter = searchParams.get('tier')?.toLowerCase();
 
     // Pagination params
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -198,6 +199,35 @@ export async function GET(request: NextRequest) {
       }
       if (searchQuery) {
         query = query.ilike('name', `%${searchQuery}%`);
+      }
+
+      // Apply Tier logic (using JSONB querying for admission rates)
+      // Admissions rate is stored in admissions->>'admission_rate_overall'
+      if (tierFilter) {
+        switch (tierFilter) {
+          case '1':
+            // Tier 1: Highly Selective (< 25%)
+            query = query.lt('admissions->>admission_rate_overall', 0.25);
+            break;
+          case '2':
+            // Tier 2: Selective (25% - 60%)
+            query = query.gte('admissions->>admission_rate_overall', 0.25)
+                         .lte('admissions->>admission_rate_overall', 0.60);
+            break;
+          case '3':
+            // Tier 3: Accessible (> 60%)
+            query = query.gt('admissions->>admission_rate_overall', 0.60);
+            break;
+          case 'community':
+            // Community: 2-year and less than 2-year
+            query = query.or('institution_type.ilike.%2-year%,institution_type.ilike.%less than 2-year%');
+            break;
+          case 'unranked':
+            // Unranked: 4-year but no admission rate data
+            query = query.ilike('institution_type', '%4-year%')
+                         .is('admissions->>admission_rate_overall', null);
+            break;
+        }
       }
 
       // For standard search we order by name. For distance search it's already ordered by distance natively in the RPC.

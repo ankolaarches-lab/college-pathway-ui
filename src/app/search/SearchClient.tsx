@@ -53,6 +53,7 @@ function SearchPageContent({
         admissionRate: 100,
         zipCode: "",
         distance: 50,
+        tier: "",
     });
     const [debouncedFilters, setDebouncedFilters] = useState(filters);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -63,6 +64,7 @@ function SearchPageContent({
     const searchMaxTuition = searchParams.get('max_tuition');
     const searchState = searchParams.get('state');
     const searchQuery = searchParams.get('q');
+    const searchTier = searchParams.get('tier');
 
     useEffect(() => {
         async function loadFavorites() {
@@ -89,9 +91,10 @@ function SearchPageContent({
         setFilters(prev => ({
             ...prev,
             type: searchType || '',
+            tier: searchTier || '',
             maxCost: searchMaxTuition ? parseInt(searchMaxTuition) : 70000,
         }));
-    }, [searchType, searchMaxTuition]);
+    }, [searchType, searchTier, searchMaxTuition]);
 
     useEffect(() => {
         async function fetchColleges() {
@@ -99,6 +102,7 @@ function SearchPageContent({
             try {
                 const params = new URLSearchParams();
                 if (debouncedFilters.type) params.set('type', debouncedFilters.type);
+                if (debouncedFilters.tier) params.set('tier', debouncedFilters.tier);
                 if (debouncedFilters.maxCost < 70000) params.set('max_tuition', debouncedFilters.maxCost.toString());
                 if (debouncedFilters.zipCode && debouncedFilters.zipCode.length === 5) {
                     params.set('zip', debouncedFilters.zipCode);
@@ -174,6 +178,22 @@ function SearchPageContent({
     const formatRate = (rate: number | null | undefined) => {
         if (rate === null || rate === undefined) return 'N/A';
         return `${rate.toFixed(1)}%`;
+    };
+
+    const getTierLabel = (college: College) => {
+        if (college.type.toLowerCase().includes('2-year') || college.type.toLowerCase().includes('less than 2-year')) {
+            return { label: 'Community & Trade', color: 'bg-slate-50 text-slate-600 border-slate-200' };
+        }
+        if (college.admission_rate === null) {
+            return { label: 'Unranked', color: 'bg-slate-50 text-slate-400 border-slate-100' };
+        }
+        if (college.admission_rate < 0.25) {
+            return { label: 'Tier 1: Highly Selective', color: 'bg-rose-50 text-rose-600 border-rose-200' };
+        }
+        if (college.admission_rate <= 0.60) {
+            return { label: 'Tier 2: Selective', color: 'bg-indigo-50 text-indigo-600 border-indigo-200' };
+        }
+        return { label: 'Tier 3: Accessible', color: 'bg-teal-50 text-teal-600 border-teal-200' };
     };
 
     return (
@@ -257,6 +277,30 @@ function SearchPageContent({
                                 </div>
 
                                 <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Selectivity Tier</label>
+                                    <div className="flex flex-col gap-2">
+                                        {[
+                                            { id: '1', label: 'Tier 1 (< 25% accept)' },
+                                            { id: '2', label: 'Tier 2 (25-60% accept)' },
+                                            { id: '3', label: 'Tier 3 (> 60% accept)' },
+                                            { id: 'community', label: 'Community & Trade' },
+                                            { id: 'unranked', label: 'Unreported' },
+                                        ].map(tier => (
+                                            <button
+                                                key={tier.id}
+                                                onClick={() => setFilters({ ...filters, tier: filters.tier === tier.id ? "" : tier.id })}
+                                                className={`h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all text-left px-4 ${filters.tier === tier.id
+                                                    ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-200/50'
+                                                    : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200 hover:text-slate-600'
+                                                    }`}
+                                            >
+                                                {tier.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">College Type</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {['Public', 'Private', '4-Year', '2-Year'].map(type => (
@@ -316,7 +360,7 @@ function SearchPageContent({
 
                             <div className="mt-10 pt-8 border-t border-slate-100 space-y-3">
                                 <button
-                                    onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, zipCode: "", distance: 50 })}
+                                    onClick={() => setFilters({ type: "", minCost: 0, maxCost: 70000, admissionRate: 100, zipCode: "", distance: 50, tier: "" })}
                                     className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-slate-400 hover:text-slate-600 transition-all text-[10px] uppercase tracking-widest"
                                 >
                                     <RotateCcw size={14} />
@@ -416,6 +460,9 @@ function SearchPageContent({
                                                 </div>
 
                                                 <div className="flex flex-wrap gap-2 mb-6">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white shrink-0 ${getTierLabel(college).color}`}>
+                                                        {getTierLabel(college).label}
+                                                    </span>
                                                     <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
                                                         {college.type}
                                                     </span>
