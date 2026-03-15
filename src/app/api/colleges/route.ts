@@ -129,6 +129,7 @@ function transformCollege(data: any): TransformedCollege {
     crime_stats: data.crime_stats ?? null,
     demographics: data.enrollment?.demographics ?? null,
     retention_rate: data.enrollment?.retention_rate_ft ?? data.enrollment?.retention_rate_pt ?? null,
+    image_url: data.image_url ?? null,
   };
 }
 
