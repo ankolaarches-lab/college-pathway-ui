@@ -51,7 +51,6 @@ interface College {
     crime_stats?: any;
     city_crime_stats?: any;
     local_housing_stats?: any;
-    image_url?: string | null;
 }
 
 export default function CollegeClient({ collegeId }: { collegeId: string }) {
@@ -198,15 +197,6 @@ export default function CollegeClient({ collegeId }: { collegeId: string }) {
                                     {college.city}, {college.state}
                                 </div>
                             </div>
-                            {college.image_url && (
-                                <div className="w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl">
-                                    <img 
-                                        src={college.image_url} 
-                                        alt={college.name}
-                                        className="w-full h-48 object-cover"
-                                    />
-                                </div>
-                            )}
                             <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-[0.95] tracking-tight max-w-4xl">
                                 {college.name}
                             </h1>

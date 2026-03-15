@@ -23,7 +23,7 @@ export default function HomeClient() {
         async function fetchData() {
             try {
                 const [collegesRes, leaderboardRes] = await Promise.all([
-                    fetch('/api/colleges?tier=1&limit=6'),
+                    fetch('/api/colleges?type=4-year'),
                     fetch('/api/leaderboard')
                 ]);
 
@@ -108,13 +108,9 @@ export default function HomeClient() {
             {/* Featured Colleges Section */}
             <section className="py-16 px-4">
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-12 flex flex-col items-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 mb-4">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                            <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Highly Selective</span>
-                        </div>
-                        <h2 className="text-3xl font-bold text-slate-800 mb-4">Elite Institutions</h2>
-                        <p className="text-slate-600">Explore the nation's most prestigious Tier 1 universities</p>
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-4">Featured Colleges</h2>
+                        <p className="text-slate-600">Explore top-rated institutions across the country</p>
                     </div>
 
                     {loading ? (
@@ -140,23 +136,18 @@ export default function HomeClient() {
                                 >
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="flex-1">
-                                            <h3 className="text-xl font-black text-slate-800 line-clamp-1 mb-1 no-underline group-hover:text-rose-600 transition-colors tracking-tight">{college.name}</h3>
+                                            <h3 className="text-xl font-black text-slate-800 line-clamp-1 mb-1 no-underline group-hover:text-indigo-600 transition-colors tracking-tight">{college.name}</h3>
                                             <div className="flex items-center text-slate-400 text-[10px] font-black uppercase tracking-widest font-bold">
-                                                <svg style={{ width: '12px', height: '12px' }} className="mr-1.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg style={{ width: '12px', height: '12px' }} className="mr-1.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 </svg>
                                                 {college.city}, {college.state}
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            <span className="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[8px] font-black uppercase tracking-widest border border-rose-200">
-                                                Tier 1
-                                            </span>
-                                            <span className="px-2.5 py-1 bg-slate-50 text-slate-500 rounded-lg text-[8px] font-black uppercase tracking-widest border border-slate-200">
-                                                {college.type}
-                                            </span>
-                                        </div>
+                                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-widest border border-indigo-100/50">
+                                            {college.type}
+                                        </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 pt-6 border-t border-indigo-50/50 group-hover:border-indigo-100 transition-colors">
                                         <div className="flex flex-col">
@@ -205,9 +196,9 @@ export default function HomeClient() {
                     )}
 
                     <div className="text-center mt-10">
-                        <Link href="/search?tier=1" className="bg-white border text-rose-600 border-rose-100 hover:bg-rose-50 font-black h-12 px-8 rounded-2xl inline-flex items-center gap-2 text-sm uppercase tracking-widest transition-all shadow-sm">
-                            View All Tier 1 Colleges
-                            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <Link href="/search" className="btn-secondary inline-flex items-center gap-2">
+                            View All Colleges
+                            <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </Link>
