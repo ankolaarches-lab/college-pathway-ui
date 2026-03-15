@@ -179,11 +179,11 @@ export async function GET(request: NextRequest) {
           }, { count: 'exact' });
         } else {
           // Invalid zip code, fallback to normal query but maybe warn?
-          query = supabase.from('institutions').select('*', { count: 'exact' });
+          query = supabase.from('institutions').select('id, name, city, state, institution_type, type:institution_type, tuition, admission_rate, graduation_rate, median_earnings, net_price_by_income, student_faculty_ratio, loan_stats, demographics, retention_rate, description, crime_stats, city_crime_stats, local_housing_stats, image_url', { count: 'exact' });
           countQuery = query;
         }
       } else {
-        query = supabase.from('institutions').select('*', { count: 'exact' });
+        query = supabase.from('institutions').select('id, name, city, state, institution_type, type:institution_type, tuition, admission_rate, graduation_rate, median_earnings, net_price_by_income, student_faculty_ratio, loan_stats, demographics, retention_rate, description, crime_stats, city_crime_stats, local_housing_stats, image_url', { count: 'exact' });
         countQuery = query;
       }
 
